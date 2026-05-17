@@ -281,7 +281,6 @@ function LoginScreen({onLogin}){
         <div style={{width:90,height:90,margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 40px rgba(30,80,212,0.4),0 0 80px rgba(30,80,212,0.15)"}}><img src="/FL.png" alt="Fulbito Logo" style={{width:90,height:90,objectFit:"contain",borderRadius:18}}/></div>
         <div style={{fontFamily:"'Outfit'",fontWeight:800,fontSize:28,color:"#fff",lineHeight:1.1,marginBottom:4}}>Fulbito</div>
         <div className="gold-text" style={{fontFamily:"'Outfit'",fontWeight:600,fontSize:15}}>de los Viernes</div>
-        <div style={{marginTop:10,fontSize:10,fontWeight:600,color:"rgba(255,255,255,0.22)",letterSpacing:2}}>AL-KOLIKO FC · TEMPORADA 2025</div>
       </div>
 
       {/* Form */}
