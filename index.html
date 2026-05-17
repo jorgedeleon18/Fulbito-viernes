@@ -1,84 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clase CSS</title>
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <!-- CSS externo -->
-    <link rel="stylesheet" href="estilos.css">
-</head>
-<body>
-
-    <!-- SECCIÓN 1: INTRODUCTORIA -->
-    <section class="introduccion">
-        <h2>Bienvenidos a nuestra tienda</h2>
-        <p>En esta sección vamos a conocer productos, ofertas y novedades.</p>
-        <button>Ver productos</button>
-    </section>
-
-    <!-- SECCIÓN 2: DESARROLLO DE TEMAS DE CSS BÁSICO -->
-    <section class="presentacion" id="promo-principal" title="Sección de presentación">
-        <div class="contenido">
-            <h2>Ofertas de la semana</h2>
-            <p>
-                Aprovechá nuestros
-                <span class="destacado">descuentos especiales</span>
-                en productos seleccionados.
-            </p>
-            <button style="border-radius: 10px;">Comprar ahora</button>
-        </div>
-    </section>
-
-    <!-- SECCIÓN 3: MEDIDAS, COLORES, FONDOS, FUENTES E ÍCONOS -->
-    <section class="recursos">
-        <h2>Recursos destacados</h2>
-        <p class="texto-recursos">
-            Esta sección permite mostrar medidas, colores, fondos, tipografías,
-            dimensiones de contenedores, overflow e íconos.
-        </p>
-
-        <div class="tarjetas">
-            <div class="tarjeta tarjeta-uno">
-                <!-- <i class="fa-solid fa-mobile-screen-button icono"></i> -->
-                 <i class="fa-brands fa-whatsapp icono"></i>
-                <h3>Medidas absolutas</h3>
-                <p>
-                    Esta tarjeta usa medidas fijas en <span>px</span> para el ancho,
-                    alto, padding y tamaño de ícono.
-                </p>
-            </div>
-
-            <div class="tarjeta tarjeta-dos">
-                <i class="fa-solid fa-percent icono"></i>
-                <h3>Medidas relativas</h3>
-                <p>
-                    Esta tarjeta usa <span>rem</span>, <span>em</span> y
-                    <span>%</span> para adaptarse mejor al contexto.
-                </p>
-            </div>
-
-            <div class="tarjeta tarjeta-tres">
-                <i class="fa-solid fa-scroll icono"></i>
-                <h3>Overflow</h3>
-                <p class="texto-largo">
-                    Este bloque tiene una altura limitada para mostrar cómo funciona
-                    overflow. Si el contenido supera el tamaño del contenedor, aparece
-                    la barra de desplazamiento. Esto sirve para explicar visible,
-                    hidden, scroll y auto dentro de un ejemplo simple y visual para
-                    clase.
-                </p>
-            </div>
-        </div>
-    </section>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#03061a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Fulbito de los Viernes</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
