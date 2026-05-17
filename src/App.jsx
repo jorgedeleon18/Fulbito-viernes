@@ -321,7 +321,7 @@ function Header({user,onAdmin,onLogout}){
       <div style={{display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:34,height:34,borderRadius:10,flexShrink:0,background:"linear-gradient(135deg,#1440b8,#0a1f6b)",border:"1px solid rgba(201,168,76,0.28)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,boxShadow:"0 0 20px rgba(30,80,212,0.4)"}}>⚽</div>
         <div>
-          <div style={{fontFamily:"'Outfit'",fontWeight:800,fontSize:16,color:"#fff",lineHeight:1.1}}>El Fulbito</div>
+          <div style={{fontFamily:"'Outfit'",fontWeight:800,fontSize:16,color:"#fff",lineHeight:1.1}}>Fulbito</div>
           <div style={{fontFamily:"'Outfit'",fontWeight:500,fontSize:9,letterSpacing:1,color:"#c9a84c"}}>de los Viernes</div>
         </div>
       </div>

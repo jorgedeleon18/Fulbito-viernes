@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # Fulbito-viernes
 =======
-# ⚽ El Fulbito de los Viernes
+# ⚽ Fulbito de los Viernes
 ## Al-Koliko FC · Temporada 2025
 
 ---

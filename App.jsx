@@ -212,7 +212,7 @@ function LoginScreen({ onLogin }) {
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
         <div style={{ fontSize: 64, marginBottom: 12 }}>⚽</div>
         <div className="bebas" style={{ fontSize: 36, color: 'var(--accent)', letterSpacing: 2 }}>AL-KOLIKO FC</div>
-        <div style={{ fontSize: 13, color: 'var(--muted2)', marginTop: 4 }}>Temporada 2025 · El Fulbito de los Viernes</div>
+        <div style={{ fontSize: 13, color: 'var(--muted2)', marginTop: 4 }}>Temporada 2025 · Fulbito de los Viernes</div>
       </div>
 
       {/* Form */}
