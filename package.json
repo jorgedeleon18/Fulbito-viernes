@@ -2,7 +2,7 @@
   "name": "fulbito-viernes",
   "private": true,
   "version": "1.0.0",
-  "description": "El Fulbito de los Viernes - Al-Koliko FC",
+  "description": "Fulbito de los Viernes - Al-Koliko FC",
   "type": "module",
   "scripts": {
     "dev": "vite",
