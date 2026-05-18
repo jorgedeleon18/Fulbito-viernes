@@ -345,7 +345,7 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
 
   return (
     <div className="fade-in" style={{position:"fixed",inset:0,zIndex:500,background:"rgba(0,0,0,0.88)",backdropFilter:"blur(16px)",display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0 0 0 0"}}
-      onClick={e=>{ if(e.target===e.currentTarget) onClose(); }}>
+      onMouseDown={e=>{ if(e.target===e.currentTarget) onClose(); }}>
       <div className="slide-up" style={{width:"100%",maxWidth:520,background:"#0a1020",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"24px 24px 0 0",maxHeight:"92dvh",overflow:"auto",paddingBottom:24}}>
         {/* Header */}
         <div style={{position:"sticky",top:0,background:"#0a1020",padding:"14px 16px 0",zIndex:10}}>
@@ -465,6 +465,11 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
                   <BtnOutline onClick={()=>setTab("stats")} style={{flex:1}}>Cancelar</BtnOutline>
                   <BtnGreen onClick={save} style={{flex:1}}>💾 Guardar</BtnGreen>
                 </div>
+                {savedOk&&(
+                  <div style={{background:"#16a34a",color:"#fff",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:700,textAlign:"center",marginTop:6}}>
+                    ✅ ¡Cambios guardados!
+                  </div>
+                )}
               </div>
             </div>
           )}
