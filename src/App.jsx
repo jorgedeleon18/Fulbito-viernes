@@ -76,16 +76,11 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
   const initials = `${jugador.nombre[0]}${jugador.apellido?.[0]||""}`;
   const pos = jugador.posicion?.substring(0,3).toUpperCase()||"JUG";
 
-  // Colores por rareza
   const panini = jugador.rareza==="Oro"
-    ? { bg1:"#d4a017", bg2:"#f0c030", bg3:"#a07010", stripe:"#c9a020", stripeLight:"#f5d060", fotoBg:"#e8d080", numColor:"rgba(255,220,80,0.15)" }
+    ? { bg1:"#d4a017", bg2:"#f0c030", bg3:"#a07010", stripe:"#c9a020", stripeLight:"#f5d060", numColor:"rgba(255,220,80,0.15)" }
     : jugador.rareza==="Plata"
-    ? { bg1:"#607080", bg2:"#90a8b8", bg3:"#405060", stripe:"#607080", stripeLight:"#a0c0d0", fotoBg:"#b0c8d8", numColor:"rgba(160,200,220,0.15)" }
-    : { bg1:"#6a3818", bg2:"#b06828", bg3:"#4a2808", stripe:"#7a4820", stripeLight:"#d08040", fotoBg:"#c07840", numColor:"rgba(200,120,60,0.15)" };
-
-  // Dimensiones del marco físico Panini
-  // SVG total: 300x420 — marco blanco de 12px cada lado
-  // Interior carta: x=12 y=12 w=276 h=396
+    ? { bg1:"#607080", bg2:"#90a8b8", bg3:"#405060", stripe:"#607080", stripeLight:"#a0c0d0", numColor:"rgba(160,200,220,0.15)" }
+    : { bg1:"#6a3818", bg2:"#b06828", bg3:"#4a2808", stripe:"#7a4820", stripeLight:"#d08040", numColor:"rgba(200,120,60,0.15)" };
 
   return (
     <svg width={size} height={size*1.4} viewBox="0 0 300 420" onClick={onClick}
@@ -111,23 +106,17 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
         <clipPath id={`pfotoclip-${jugador.id}`}>
           <rect x="12" y="12" width="276" height="270"/>
         </clipPath>
-        <filter id={`pshadow-${jugador.id}`}>
-          <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="rgba(0,0,0,0.3)"/>
-        </filter>
       </defs>
 
-      {/* ── MARCO FÍSICO BLANCO EXTERIOR (estilo sticker Panini) ── */}
+      {/* Marco blanco exterior estilo Panini */}
       <rect x="0" y="0" width="300" height="420" rx="14" fill="#f5f5f0"/>
-      {/* Sombra interior del marco */}
       <rect x="2" y="2" width="296" height="416" rx="13" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="3"/>
 
-      {/* ── INTERIOR DE LA CARTA ── */}
       <g clipPath={`url(#pcard-${jugador.id})`}>
-
-        {/* Fondo degradado de color (zona foto) */}
+        {/* Fondo degradado zona foto */}
         <rect x="12" y="12" width="276" height="396" fill={`url(#pbg-${jugador.id})`}/>
 
-        {/* Número grande decorativo de fondo */}
+        {/* Número grande decorativo */}
         <text x="158" y="245" fontFamily="'Bebas Neue',sans-serif" fontSize="220"
           fill={panini.numColor} textAnchor="middle" fontWeight="900">{jugador.numero||"10"}</text>
 
@@ -146,38 +135,26 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
         {/* Fade foto → panel blanco */}
         <rect x="12" y="200" width="276" height="82" fill={`url(#pfade-${jugador.id})`}/>
 
-        {/* ── RATING + POSICIÓN — esquina sup izq ── */}
-        <rect x="18" y="18" width="46" height="60" rx="6" fill="rgba(0,0,0,0.5)"/>
-        <text x="41" y="50" fontFamily="'Bebas Neue',sans-serif" fontSize="28"
-          fill="#fff" textAnchor="middle">{media}</text>
-        <text x="41" y="68" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="800"
-          fill={panini.stripeLight} textAnchor="middle" letterSpacing="0.5">{pos}</text>
+        {/* Rating + posición */}
+        <rect x="18" y="30" width="46" height="60" rx="6" fill="rgba(0,0,0,0.5)"/>
+        <text x="41" y="62" fontFamily="'Bebas Neue',sans-serif" fontSize="28" fill="#fff" textAnchor="middle">{media}</text>
+        <text x="41" y="80" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="800" fill={panini.stripeLight} textAnchor="middle" letterSpacing="0.5">{pos}</text>
 
-        {/* ── BANDERA — esquina sup der ── */}
-        <rect x="236" y="18" width="46" height="46" rx="6" fill="rgba(0,0,0,0.45)"/>
-        <text x="259" y="47" fontFamily="sans-serif" fontSize="26" textAnchor="middle">🇦🇷</text>
+        {/* Bandera */}
+        <rect x="236" y="30" width="46" height="46" rx="6" fill="rgba(0,0,0,0.45)"/>
+        <text x="259" y="59" fontFamily="sans-serif" fontSize="26" textAnchor="middle">🇦🇷</text>
 
-        {/* ── PANEL BLANCO INFERIOR ── */}
+        {/* Panel blanco inferior */}
         <rect x="12" y="280" width="276" height="128" fill="#f5f5f0"/>
-
-        {/* Franja de color separadora */}
         <rect x="12" y="280" width="276" height="5" fill={panini.stripe}/>
 
         {/* Nombre */}
         <text x="150" y="306" fontFamily="'Outfit',sans-serif" fontSize="12" fontWeight="400"
-          fill="#444" textAnchor="middle" letterSpacing="2">
-          {jugador.nombre.toUpperCase()}
-        </text>
+          fill="#444" textAnchor="middle" letterSpacing="2">{jugador.nombre.toUpperCase()}</text>
         <text x="150" y="326" fontFamily="'Bebas Neue',sans-serif" fontSize="24" fontWeight="900"
-          fill="#111" textAnchor="middle" letterSpacing="1">
-          {jugador.apellido?.toUpperCase()}
-        </text>
-
-        {/* Club */}
+          fill="#111" textAnchor="middle" letterSpacing="1">{jugador.apellido?.toUpperCase()}</text>
         <text x="150" y="340" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="600"
-          fill={panini.stripe} textAnchor="middle" letterSpacing="1.5">
-          AL-KOLIKO FC
-        </text>
+          fill={panini.stripe} textAnchor="middle" letterSpacing="1.5">{jugador.apodo}</text>
 
         {/* Línea divisoria */}
         <line x1="30" y1="347" x2="270" y2="347" stroke="#ddd" strokeWidth="1"/>
@@ -190,172 +167,32 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
           const x = 28 + i*42;
           return (
             <g key={k}>
-              <text x={x} y={364} fontFamily="'Bebas Neue',sans-serif" fontSize="15"
-                fill="#111" textAnchor="middle">{v}</text>
+              <text x={x} y={364} fontFamily="'Bebas Neue',sans-serif" fontSize="15" fill="#111" textAnchor="middle">{v}</text>
               <text x={x} y={374} fontFamily="'Outfit',sans-serif" fontSize="7" fontWeight="700"
                 fill={panini.stripe} textAnchor="middle" letterSpacing="0.5">{k}</text>
             </g>
           );
         })}
 
-        {/* Número de colección abajo izq */}
+        {/* Número colección + badge */}
         <text x="22" y="399" fontFamily="'Outfit',sans-serif" fontSize="7" fontWeight="600"
           fill="#999" letterSpacing="0.5">#{String(jugador.id).padStart(3,"0")}</text>
-
-        {/* "PANINI" estilo badge abajo der */}
         <rect x="218" y="388" width="58" height="14" rx="3" fill={panini.stripe}/>
         <text x="247" y="399" fontFamily="'Bebas Neue',sans-serif" fontSize="11"
           fill="#fff" textAnchor="middle" letterSpacing="2">FULBITO</text>
-
       </g>
 
-      {/* Borde interior de la carta (sobre el marco blanco) */}
-      <rect x="12" y="12" width="276" height="396" rx="10" fill="none"
-        stroke={r.border} strokeWidth="1.5" opacity="0.6"/>
+      {/* Borde interior carta */}
+      <rect x="12" y="12" width="276" height="396" rx="10" fill="none" stroke={r.border} strokeWidth="1.5" opacity="0.6"/>
 
-      {/* ── FRANJA SUPERIOR COLORIDA (estilo Panini: nombre álbum) ── */}
-      <rect x="12" y="12" width="276" height="22" rx="0" fill={panini.stripe} opacity="0.92"/>
-      <rect x="12" y="12" width="276" height="22"
-        style={{borderRadius:"10px 10px 0 0"}}
-        fill={panini.stripe} opacity="0"/>
-      {/* fix esquinas redondeadas arriba */}
-      <path d="M22,12 L276,12 Q288,12 288,22 L288,34 L12,34 L12,22 Q12,12 22,12 Z" fill={panini.stripe} opacity="0.92"/>
+      {/* Franja superior con nombre álbum */}
+      <path d="M22,12 L278,12 Q288,12 288,22 L288,34 L12,34 L12,22 Q12,12 22,12 Z" fill={panini.stripe} opacity="0.95"/>
       <text x="150" y="27" fontFamily="'Bebas Neue',sans-serif" fontSize="12"
-        fill="#fff" textAnchor="middle" letterSpacing="3" opacity="0.95">AL-KOLIKO FC · 2025</text>
-
+        fill="#fff" textAnchor="middle" letterSpacing="3">AL-KOLIKO FC · 2025</text>
     </svg>
   );
 }
 
-  return (
-    <svg width={size} height={size*1.4} viewBox="0 0 280 390" onClick={onClick}
-      style={{ cursor:onClick?"pointer":"default", filter:`drop-shadow(0 8px 28px ${r.glow})`, borderRadius:16 }}>
-      <defs>
-        {/* Fondo principal degradado */}
-        <linearGradient id={`pbg-${jugador.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={panini.bg2}/>
-          <stop offset="50%" stopColor={panini.bg1}/>
-          <stop offset="100%" stopColor={panini.bg3}/>
-        </linearGradient>
-        {/* Fondo zona foto */}
-        <linearGradient id={`pfoto-${jugador.id}`} x1="0%" y1="0%" x2="60%" y2="100%">
-          <stop offset="0%" stopColor={panini.bg2} stopOpacity="0.7"/>
-          <stop offset="100%" stopColor={panini.bg3} stopOpacity="0.9"/>
-        </linearGradient>
-        {/* Avatar bg */}
-        <radialGradient id={`pav-${jugador.id}`} cx="50%" cy="35%" r="65%">
-          <stop offset="0%" stopColor={jugador.color||"#3a7ad4"} stopOpacity="0.9"/>
-          <stop offset="100%" stopColor={jugador.color||"#1a3a7a"} stopOpacity="1"/>
-        </radialGradient>
-        <clipPath id={`pcard-${jugador.id}`}>
-          <rect x="0" y="0" width="280" height="390" rx="16"/>
-        </clipPath>
-        <clipPath id={`pfotoclip-${jugador.id}`}>
-          <rect x="0" y="0" width="280" height="250"/>
-        </clipPath>
-        <clipPath id={`pavatarclip-${jugador.id}`}>
-          <circle cx="140" cy="130" r="80"/>
-        </clipPath>
-      </defs>
-
-      <g clipPath={`url(#pcard-${jugador.id})`}>
-
-        {/* Fondo carta completo */}
-        <rect x="0" y="0" width="280" height="390" fill={`url(#pbg-${jugador.id})`}/>
-
-        {/* Número grande decorativo de fondo estilo Panini */}
-        <text x="150" y="220" fontFamily="'Bebas Neue',sans-serif" fontSize="200" fill="rgba(255,255,255,0.08)" textAnchor="middle" fontWeight="900">{jugador.numero||"10"}</text>
-
-        {/* Zona foto — fondo degradado */}
-        <rect x="0" y="0" width="280" height="255" fill={`url(#pfoto-${jugador.id})`}/>
-
-        {/* Franja diagonal decorativa izquierda */}
-        <polygon points="0,0 60,0 0,120" fill="rgba(255,255,255,0.12)"/>
-
-        {/* Avatar o foto */}
-        {jugador.foto ? (
-          <image href={jugador.foto} x="40" y="10" width="200" height="240"
-            clipPath={`url(#pfotoclip-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
-        ) : (
-          <>
-            <circle cx="140" cy="125" r="82" fill={`url(#pav-${jugador.id})`}/>
-            <text x="140" y="148" fontFamily="'Outfit',sans-serif" fontSize="60" fontWeight="900"
-              fill="rgba(255,255,255,0.95)" textAnchor="middle">{initials}</text>
-          </>
-        )}
-
-        {/* Overlay degradado sobre foto para transición suave al panel inferior */}
-        <linearGradient id={`poverfade-${jugador.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor={panini.bg3} stopOpacity="0"/>
-          <stop offset="100%" stopColor={panini.bg3} stopOpacity="1"/>
-        </linearGradient>
-        <rect x="0" y="180" width="280" height="75" fill={`url(#poverfade-${jugador.id})`}/>
-
-        {/* Rating + posición — esquina superior izquierda estilo FIFA/Panini */}
-        <rect x="8" y="8" width="44" height="56" rx="8" fill="rgba(0,0,0,0.45)"/>
-        <text x="30" y="38" fontFamily="'Bebas Neue',sans-serif" fontSize="26" fill="#fff" textAnchor="middle">{media}</text>
-        <text x="30" y="56" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="800" fill={panini.stripeLight} textAnchor="middle" letterSpacing="0.5">{pos}</text>
-
-        {/* Bandera — esquina superior derecha */}
-        <rect x="228" y="8" width="44" height="44" rx="8" fill="rgba(0,0,0,0.4)"/>
-        <text x="250" y="36" fontFamily="sans-serif" fontSize="24" textAnchor="middle">🇦🇷</text>
-
-        {/* Panel inferior blanco/oscuro estilo Panini */}
-        <rect x="0" y="253" width="280" height="137" fill={panini.textBg}/>
-        <rect x="0" y="253" width="280" height="4" fill={panini.stripe}/>
-
-        {/* Nombre jugador */}
-        <text x="140" y="278" fontFamily="'Outfit',sans-serif" fontSize="13" fontWeight="400"
-          fill="rgba(255,255,255,0.7)" textAnchor="middle" letterSpacing="1">
-          {jugador.nombre.toUpperCase()}
-        </text>
-        <text x="140" y="296" fontFamily="'Bebas Neue',sans-serif" fontSize="22" fontWeight="900"
-          fill="#ffffff" textAnchor="middle" letterSpacing="1.5">
-          {jugador.apellido?.toUpperCase()}
-        </text>
-
-        {/* Apodo */}
-        <text x="140" y="311" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="500"
-          fill={panini.stripeLight} textAnchor="middle" letterSpacing="1" opacity="0.9">
-          {jugador.apodo}
-        </text>
-
-        {/* Línea divisoria */}
-        <line x1="20" y1="318" x2="260" y2="318" stroke={panini.stripe} strokeWidth="0.8" opacity="0.5"/>
-
-        {/* Stats — 6 en fila */}
-        {[
-          ["VEL",jugador.stats?.velocidad||0],["PAS",jugador.stats?.pase||0],["DEF",jugador.stats?.defensa||0],
-          ["TIR",jugador.stats?.tiro||0],["TEC",jugador.stats?.tecnica||0],["RES",jugador.stats?.resistencia||0],
-        ].map(([k,v],i)=>{
-          const x = 23 + i*40;
-          return (
-            <g key={k}>
-              <text x={x} y={337} fontFamily="'Bebas Neue',sans-serif" fontSize="15" fill="#fff" textAnchor="middle">{v}</text>
-              <text x={x} y={348} fontFamily="'Outfit',sans-serif" fontSize="7" fontWeight="700"
-                fill={panini.stripeLight} textAnchor="middle" letterSpacing="0.5" opacity="0.8">{k}</text>
-            </g>
-          );
-        })}
-
-        {/* Línea divisoria 2 */}
-        <line x1="20" y1="354" x2="260" y2="354" stroke={panini.stripe} strokeWidth="0.8" opacity="0.3"/>
-
-        {/* Club + rareza abajo */}
-        <text x="20" y="372" fontFamily="'Outfit',sans-serif" fontSize="8" fontWeight="700"
-          fill="rgba(255,255,255,0.5)" letterSpacing="1">AL-KOLIKO FC</text>
-        <rect x="190" y="361" width="72" height="14" rx="4" fill={panini.stripe} opacity="0.6"/>
-        <text x="226" y="372" fontFamily="'Outfit',sans-serif" fontSize="8" fontWeight="800"
-          fill="#fff" textAnchor="middle" letterSpacing="1">{jugador.rareza?.toUpperCase()}</text>
-
-        {/* Borde exterior */}
-        <rect x="1" y="1" width="278" height="388" rx="15" fill="none" stroke={r.border} strokeWidth="2.5" opacity="0.7"/>
-        <rect x="4" y="4" width="272" height="382" rx="13" fill="none" stroke={r.border} strokeWidth="0.8" opacity="0.3"/>
-
-      </g>
-    </svg>
-  );
-}
 
 /* ─────────────────────────────────────────
    STARBALL
