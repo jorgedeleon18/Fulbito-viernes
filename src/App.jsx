@@ -264,8 +264,7 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
   const [savedOk, setSavedOk] = useState(false);
   const fileRef = useRef();
 
-  // Sincronizar form cuando jugador cambia desde afuera
-  useEffect(() => { setForm(f=>({...jugador,...f, foto:jugador.foto||f.foto})); }, [jugador.id]);
+
 
   if(!jugador) return null;
   const media = Math.round(Object.values(jugador.stats||{}).reduce((a,b)=>a+b,0)/6);
@@ -987,7 +986,6 @@ export default function App() {
   const handlePlayerClick = (j) => setSelectedPlayer(j);
   const handlePlayerSave = (updated) => {
     setUsers(prev=>prev.map(u=>u.id===updated.id?{...u,...updated}:u));
-    setSelectedPlayer(prev=>prev?{...prev,...updated}:prev);
     if(loggedUser?.id===updated.id) setLoggedUser(prev=>({...prev,...updated}));
   };
 
