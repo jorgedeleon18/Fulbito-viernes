@@ -359,9 +359,9 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
 
           {/* FIGURITA */}
           {tab==="figurita"&&(
-            <div className="fade-in" style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"8px 0"}}>
-              <FiguritaSVG jugador={jugador} size={240}/>
-              <div style={{marginTop:16,fontSize:12,color:"rgba(255,255,255,0.3)",textAlign:"center"}}>
+            <div className="fade-in" style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"8px 0",overflowX:"hidden"}}>
+              <FiguritaSVG jugador={jugador} size={200}/>
+              <div style={{marginTop:12,fontSize:12,color:"rgba(255,255,255,0.3)",textAlign:"center"}}>
                 Figurita generada automáticamente<br/>Completá tu perfil para mejorar tus stats
               </div>
             </div>
@@ -984,6 +984,7 @@ export default function App() {
   const handlePlayerClick = (j) => setSelectedPlayer(j);
   const handlePlayerSave = (updated) => {
     setUsers(prev=>prev.map(u=>u.id===updated.id?{...u,...updated}:u));
+    setSelectedPlayer(prev=>prev?{...prev,...updated}:prev);
     if(loggedUser?.id===updated.id) setLoggedUser(prev=>({...prev,...updated}));
   };
 
