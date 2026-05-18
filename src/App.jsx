@@ -73,160 +73,64 @@ const PIERNAS = ["Derecha","Izquierda","Ambas"];
 function FiguritaSVG({ jugador, size=280, onClick }) {
   const media = Math.round(Object.values(jugador.stats||{}).reduce((a,b)=>a+b,0)/6);
   const initials = `${jugador.nombre[0]}${jugador.apellido?.[0]||""}`;
+  const color = jugador.color||"#4a90d4";
 
-  // Color de fondo según rareza — teal para todos, más saturado en Oro
-  const bgColor = jugador.rareza==="Oro" ? "#4a9e8a"
-    : jugador.rareza==="Plata" ? "#5a8fa8"
-    : "#5a9e8a";
-  const bgDark  = jugador.rareza==="Oro" ? "#2a7060"
-    : jugador.rareza==="Plata" ? "#3a6880"
-    : "#3a7060";
-  const accentColor = jugador.rareza==="Oro" ? "#f0c030"
-    : jugador.rareza==="Plata" ? "#c0d8e8"
-    : "#ffffff";
+  // El PNG del marco tiene proporción ~862x1144 ≈ 1:1.328
+  // viewBox lo mantenemos 300x398 para esa proporción
+  // Hueco foto en el PNG: aprox x=7% y=9.5% w=66% h=66%
+  // En 300x398: x=21 y=38 w=198 h=263
 
   return (
-    <svg width={size} height={size*1.45} viewBox="0 0 300 435" onClick={onClick}
+    <svg width={size} height={size*1.328} viewBox="0 0 300 398" onClick={onClick}
       style={{ cursor:onClick?"pointer":"default", filter:"drop-shadow(0 6px 24px rgba(0,0,0,0.5))" }}>
       <defs>
-        <linearGradient id={`bg-${jugador.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={bgColor}/>
-          <stop offset="100%" stopColor={bgDark}/>
-        </linearGradient>
         <radialGradient id={`av-${jugador.id}`} cx="50%" cy="35%" r="65%">
-          <stop offset="0%" stopColor={jugador.color||"#4a90d4"} stopOpacity="0.9"/>
-          <stop offset="100%" stopColor={jugador.color||"#1a3a7a"} stopOpacity="1"/>
+          <stop offset="0%" stopColor={color} stopOpacity="0.95"/>
+          <stop offset="100%" stopColor={color} stopOpacity="0.7"/>
         </radialGradient>
-        <clipPath id={`card-${jugador.id}`}>
-          <rect x="0" y="0" width="300" height="435" rx="16"/>
-        </clipPath>
         <clipPath id={`foto-${jugador.id}`}>
-          <rect x="18" y="18" width="200" height="268" rx="14"/>
+          <rect x="21" y="38" width="198" height="263" rx="18"/>
         </clipPath>
-        <filter id={`shadow-${jugador.id}`}>
-          <feDropShadow dx="2" dy="3" stdDeviation="4" floodColor="rgba(0,0,0,0.35)"/>
-        </filter>
       </defs>
 
-      <g clipPath={`url(#card-${jugador.id})`}>
+      {/* ── FOTO O AVATAR en el hueco negro del marco ── */}
+      {jugador.foto ? (
+        <image href={jugador.foto} x="21" y="38" width="198" height="263"
+          clipPath={`url(#foto-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
+      ) : (
+        <g clipPath={`url(#foto-${jugador.id})`}>
+          <rect x="21" y="38" width="198" height="263" fill={`url(#av-${jugador.id})`}/>
+          <text x="120" y="192" fontFamily="'Outfit',sans-serif" fontSize="72" fontWeight="900"
+            fill="rgba(255,255,255,0.95)" textAnchor="middle">{initials}</text>
+        </g>
+      )}
 
-        {/* ── FONDO PRINCIPAL ── */}
-        <rect x="0" y="0" width="300" height="435" fill={`url(#bg-${jugador.id})`}/>
+      {/* ── MARCO PNG encima de la foto ── */}
+      <image href="/marco.png" x="0" y="0" width="300" height="398" preserveAspectRatio="xMidYMid meet"/>
 
-        {/* ── FRANJA DIAGONAL ARGENTINA arriba izquierda ── */}
-        <polygon points="0,0 110,0 0,110" fill="rgba(255,255,255,0.18)"/>
-        <polygon points="0,0 85,0 0,85" fill="rgba(135,190,220,0.35)"/>
-        <polygon points="0,0 55,0 0,55" fill="rgba(255,255,255,0.25)"/>
+      {/* ── MEDIA arriba izquierda ── */}
+      <text x="30" y="32" fontFamily="'Bebas Neue',sans-serif" fontSize="20"
+        fill="white" textAnchor="middle" fontWeight="900">{media}</text>
 
-        {/* ── LETRAS GRANDES "BEZ" (ciudad abreviada) derecha ── */}
-        <text x="308" y="320" fontFamily="'Bebas Neue',sans-serif" fontSize="120"
-          fill="rgba(255,255,255,0.10)" textAnchor="end" fontWeight="900" letterSpacing="-4">
-          {jugador.ciudad?.substring(0,3).toUpperCase()||"ARG"}
-        </text>
+      {/* ── NOMBRE en fila 1 del panel inferior ── */}
+      <text x="148" y="321" fontFamily="'Outfit',sans-serif" fontSize="14"
+        fill="white" textAnchor="middle" letterSpacing="0.5">
+        <tspan fontWeight="400">{jugador.nombre.toUpperCase()} </tspan>
+        <tspan fontWeight="900">{jugador.apellido?.toUpperCase()}</tspan>
+      </text>
 
-        {/* ── ESTRELLA DECORATIVA ── */}
-        <text x="262" y="95" fontFamily="sans-serif" fontSize="22" fill="rgba(255,255,255,0.7)">✦</text>
-        <text x="275" y="120" fontFamily="sans-serif" fontSize="10" fill="rgba(255,255,255,0.4)">✦</text>
+      {/* ── STATS en fila 2 ── */}
+      <text x="148" y="349" fontFamily="'Outfit',sans-serif" fontSize="11"
+        fill="white" textAnchor="middle" letterSpacing="0.5">
+        {`VEL ${jugador.stats?.velocidad||0}  |  PAS ${jugador.stats?.pase||0}  |  DEF ${jugador.stats?.defensa||0}  |  TIR ${jugador.stats?.tiro||0}  |  TEC ${jugador.stats?.tecnica||0}`}
+      </text>
 
-        {/* ── PUNTOS DECORATIVOS ── */}
-        {[0,1,2,3,4].map(i=>[0,1,2,3,4].map(j=>(
-          <circle key={`${i}-${j}`} cx={240+j*8} cy={130+i*8} r="1.5"
-            fill="rgba(255,255,255,0.18)"/>
-        )))}
+      {/* ── CLUB en fila 3 ── */}
+      <text x="140" y="374" fontFamily="'Outfit',sans-serif" fontSize="12" fontWeight="700"
+        fill="white" textAnchor="middle" letterSpacing="1">
+        AL-KOLIKO FC
+      </text>
 
-        {/* ── MARCO FOTO — rect redondeado blanco con sombra ── */}
-        <rect x="14" y="14" width="208" height="276" rx="16"
-          fill="rgba(0,0,0,0.25)" filter={`url(#shadow-${jugador.id})`}/>
-        <rect x="14" y="14" width="208" height="276" rx="16" fill="white"/>
-
-        {/* Foto o iniciales dentro del marco */}
-        {jugador.foto ? (
-          <image href={jugador.foto} x="14" y="14" width="208" height="276"
-            clipPath={`url(#foto-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
-        ) : (
-          <>
-            <rect x="14" y="14" width="208" height="276" rx="16" fill={`url(#av-${jugador.id})`}/>
-            <text x="118" y="168" fontFamily="'Outfit',sans-serif" fontSize="72" fontWeight="900"
-              fill="rgba(255,255,255,0.95)" textAnchor="middle">{initials}</text>
-          </>
-        )}
-
-        {/* Borde fino oscuro del marco foto */}
-        <rect x="14" y="14" width="208" height="276" rx="16" fill="none"
-          stroke="rgba(0,0,0,0.2)" strokeWidth="1.5"/>
-
-        {/* ── MEDIA + POSICIÓN — esquina sup izq sobre el marco ── */}
-        <rect x="18" y="18" width="44" height="56" rx="8" fill={bgDark} opacity="0.85"/>
-        <text x="40" y="47" fontFamily="'Bebas Neue',sans-serif" fontSize="24"
-          fill={accentColor} textAnchor="middle">{media}</text>
-        <text x="40" y="62" fontFamily="'Outfit',sans-serif" fontSize="8" fontWeight="800"
-          fill="rgba(255,255,255,0.8)" textAnchor="middle" letterSpacing="0.5">
-          {jugador.posicion?.substring(0,3).toUpperCase()||"JUG"}
-        </text>
-
-        {/* ── BANDERA CIRCULAR derecha ── */}
-        <circle cx="262" cy="200" r="26" fill="white" filter={`url(#shadow-${jugador.id})`}/>
-        <circle cx="262" cy="200" r="24" fill="white"/>
-        <text x="262" y="208" fontFamily="sans-serif" fontSize="28" textAnchor="middle">🇦🇷</text>
-
-        {/* ── PANEL INFERIOR ── */}
-        <rect x="0" y="302" width="300" height="133" fill={bgDark} opacity="0.7"/>
-
-        {/* Fila 1: Nombre Apellido */}
-        <rect x="10" y="308" width="280" height="34" rx="8" fill="rgba(255,255,255,0.12)"/>
-        <text x="150" y="330" fontFamily="'Outfit',sans-serif" fontSize="13" fontWeight="400"
-          fill="rgba(255,255,255,0.85)" textAnchor="middle" letterSpacing="1">
-          {jugador.nombre.toUpperCase()}
-        </text>
-        <text x="150" y="330" fontFamily="'Bebas Neue',sans-serif" fontSize="13"
-          fill="white" textAnchor="middle" letterSpacing="1">
-          {"  ".repeat(jugador.nombre.length+1)}{jugador.apellido?.toUpperCase()}
-        </text>
-        {/* Nombre fino + Apellido bold en la misma fila */}
-        <text x="150" y="330" fontFamily="'Outfit',sans-serif" fontSize="13"
-          fill="white" textAnchor="middle" letterSpacing="0.5">
-          <tspan fontWeight="300">{jugador.nombre.toUpperCase()} </tspan>
-          <tspan fontWeight="900">{jugador.apellido?.toUpperCase()}</tspan>
-        </text>
-
-        {/* Fila 2: Stats principales */}
-        <rect x="10" y="347" width="280" height="28" rx="8" fill="rgba(255,255,255,0.08)"/>
-        {[
-          ["VEL",jugador.stats?.velocidad||0],["PAS",jugador.stats?.pase||0],["DEF",jugador.stats?.defensa||0],
-          ["TIR",jugador.stats?.tiro||0],["TEC",jugador.stats?.tecnica||0],["RES",jugador.stats?.resistencia||0],
-        ].map(([k,v],i)=>{
-          const x = 26 + i*47;
-          return (
-            <g key={k}>
-              <text x={x} y={362} fontFamily="'Bebas Neue',sans-serif" fontSize="13"
-                fill="white" textAnchor="middle">{v}</text>
-              <text x={x} y={371} fontFamily="'Outfit',sans-serif" fontSize="6.5" fontWeight="700"
-                fill="rgba(255,255,255,0.6)" textAnchor="middle" letterSpacing="0.3">{k}</text>
-            </g>
-          );
-        })}
-
-        {/* Fila 3: Club */}
-        <rect x="10" y="381" width="248" height="26" rx="8" fill="rgba(255,255,255,0.08)"/>
-        <text x="134" y="399" fontFamily="'Outfit',sans-serif" fontSize="11" fontWeight="600"
-          fill="rgba(255,255,255,0.85)" textAnchor="middle" letterSpacing="1.5">
-          AL-KOLIKO FC
-        </text>
-        {/* Pelota fútbol al final de fila club */}
-        <circle cx="267" cy="394" r="13" fill="rgba(255,255,255,0.15)"/>
-        <text x="267" y="399" fontFamily="sans-serif" fontSize="14" textAnchor="middle">⚽</text>
-
-        {/* Número colección */}
-        <text x="150" y="424" fontFamily="'Outfit',sans-serif" fontSize="7"
-          fill="rgba(255,255,255,0.3)" textAnchor="middle" letterSpacing="1">
-          #{String(jugador.id).padStart(3,"0")} · FULBITO DE LOS VIERNES 2025
-        </text>
-
-      </g>
-
-      {/* Borde exterior carta */}
-      <rect x="0" y="0" width="300" height="435" rx="16" fill="none"
-        stroke="rgba(255,255,255,0.2)" strokeWidth="2"/>
     </svg>
   );
 }
