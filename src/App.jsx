@@ -75,13 +75,6 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
   const initials = `${jugador.nombre[0]}${jugador.apellido?.[0]||""}`;
   const color = jugador.color||"#4a90d4";
 
-  // PNG 1024x1536, viewBox 300x450
-  // Hueco negro: left=123(12%) top=50(3.3%) right=949(92.7%) bottom=1051(68.4%)
-  // En viewBox: x=36 y=15 w=242 h=294
-  // Fila1 panel: 68.5%-84.2% → y=308 h=71 color=#72b1ba
-  // Fila2 panel: 85.5%-87.6% → y=385 h=10
-  // Fila3: ~88-92% → y=396 h=18
-
   return (
     <svg width={size} height={size*1.5} viewBox="0 0 300 450" onClick={onClick}
       style={{ cursor:onClick?"pointer":"default", filter:"drop-shadow(0 6px 24px rgba(0,0,0,0.5))" }}>
@@ -91,18 +84,18 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
           <stop offset="100%" stopColor={color} stopOpacity="0.7"/>
         </radialGradient>
         <clipPath id={`foto-${jugador.id}`}>
-          <rect x="36" y="15" width="242" height="294" rx="16"/>
+          <rect x="42" y="61" width="180" height="247" rx="12"/>
         </clipPath>
       </defs>
 
-      {/* Foto o iniciales DEBAJO del marco */}
+      {/* Foto o iniciales en el hueco */}
       {jugador.foto ? (
-        <image href={jugador.foto} x="36" y="15" width="242" height="294"
+        <image href={jugador.foto} x="42" y="61" width="180" height="247"
           clipPath={`url(#foto-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
       ) : (
         <g clipPath={`url(#foto-${jugador.id})`}>
-          <rect x="36" y="15" width="242" height="294" fill={`url(#av-${jugador.id})`}/>
-          <text x="157" y="175" fontFamily="'Outfit',sans-serif" fontSize="72" fontWeight="900"
+          <rect x="42" y="61" width="180" height="247" fill={`url(#av-${jugador.id})`}/>
+          <text x="132" y="200" fontFamily="'Outfit',sans-serif" fontSize="64" fontWeight="900"
             fill="rgba(255,255,255,0.95)" textAnchor="middle">{initials}</text>
         </g>
       )}
@@ -110,33 +103,25 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
       {/* Marco PNG encima */}
       <image href="/marco.png" x="0" y="0" width="300" height="450" preserveAspectRatio="xMidYMid meet"/>
 
-      {/* Tapar texto del PNG con rectángulos del mismo color teal */}
-      {/* Fila 1 grande */}
-      <rect x="15" y="308" width="218" height="71" rx="8" fill="#72b1ba"/>
-      {/* Fila 2 */}
-      <rect x="15" y="383" width="218" height="20" rx="5" fill="#72b1ba"/>
-      {/* Fila 3 */}
-      <rect x="15" y="406" width="218" height="22" rx="5" fill="#72b1ba"/>
-
       {/* Media arriba izquierda */}
-      <text x="44" y="30" fontFamily="'Bebas Neue',sans-serif" fontSize="22"
+      <text x="60" y="52" fontFamily="'Bebas Neue',sans-serif" fontSize="20"
         fill="white" textAnchor="middle" fontWeight="900">{media}</text>
 
-      {/* Nombre + Apellido en fila 1 */}
-      <text x="113" y="349" fontFamily="'Outfit',sans-serif" fontSize="14"
+      {/* Fila 1 — Nombre Apellido */}
+      <text x="120" y="332" fontFamily="'Outfit',sans-serif" fontSize="13"
         fill="white" textAnchor="middle">
         <tspan fontWeight="300">{jugador.nombre.toUpperCase()} </tspan>
         <tspan fontWeight="900">{jugador.apellido?.toUpperCase()}</tspan>
       </text>
 
-      {/* Stats en fila 2 */}
-      <text x="113" y="397" fontFamily="'Outfit',sans-serif" fontSize="7.5"
+      {/* Fila 2 — Fecha + posición */}
+      <text x="120" y="358" fontFamily="'Outfit',sans-serif" fontSize="8.5"
         fill="white" textAnchor="middle">
-        {`VEL ${jugador.stats?.velocidad||0} | PAS ${jugador.stats?.pase||0} | DEF ${jugador.stats?.defensa||0} | TIR ${jugador.stats?.tiro||0} | TEC ${jugador.stats?.tecnica||0}`}
+        {(jugador.fechaNac||"--/--/----") + " · " + (jugador.posicion||"Jugador")}
       </text>
 
-      {/* Club en fila 3 */}
-      <text x="105" y="421" fontFamily="'Outfit',sans-serif" fontSize="11" fontWeight="700"
+      {/* Fila 3 — Club */}
+      <text x="112" y="382" fontFamily="'Outfit',sans-serif" fontSize="11" fontWeight="700"
         fill="white" textAnchor="middle" letterSpacing="1">
         AL-KOLIKO FC
       </text>
@@ -145,10 +130,6 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
   );
 }
 
-
-/* ─────────────────────────────────────────
-   STARBALL
-───────────────────────────────────────── */
 function StarballSVG({ size=320, opacity=0.06 }) {
   const cx=size/2, cy=size/2, R=size*0.38, r=size*0.07;
   const stars=Array.from({length:8},(_,i)=>{ const a=(i*Math.PI*2)/8-Math.PI/2; return {x:cx+R*Math.cos(a),y:cy+R*Math.sin(a)}; });
