@@ -466,7 +466,7 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
                   <BtnGreen onClick={save} style={{flex:1}}>💾 Guardar</BtnGreen>
                 </div>
                 {savedOk&&(
-                  <div style={{background:"#16a34a",color:"#fff",borderRadius:10,padding:"10px 14px",fontSize:13,fontWeight:700,textAlign:"center",marginTop:6}}>
+                  <div style={{marginTop:8,background:"#16a34a",color:"#fff",borderRadius:10,padding:"10px 14px",fontSize:14,fontWeight:700,textAlign:"center"}}>
                     ✅ ¡Cambios guardados!
                   </div>
                 )}
@@ -1045,7 +1045,6 @@ export default function App() {
   const handlePlayerClick = (j) => setSelectedPlayer(j);
   const handlePlayerSave = (updated) => {
     setUsers(prev=>prev.map(u=>u.id===updated.id?{...u,...updated}:u));
-    setSelectedPlayer(updated);
     if(loggedUser?.id===updated.id) setLoggedUser(prev=>({...prev,...updated}));
   };
 
