@@ -264,6 +264,9 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
   const [savedOk, setSavedOk] = useState(false);
   const fileRef = useRef();
 
+  // Sincronizar form cuando jugador cambia desde afuera
+  useEffect(() => { setForm(f=>({...jugador,...f, foto:jugador.foto||f.foto})); }, [jugador.id]);
+
   if(!jugador) return null;
   const media = Math.round(Object.values(jugador.stats||{}).reduce((a,b)=>a+b,0)/6);
 
@@ -360,7 +363,7 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
           {/* FIGURITA */}
           {tab==="figurita"&&(
             <div className="fade-in" style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"8px 0",overflowX:"hidden"}}>
-              <FiguritaSVG jugador={jugador} size={200}/>
+              <FiguritaSVG jugador={form} size={200}/>
               <div style={{marginTop:12,fontSize:12,color:"rgba(255,255,255,0.3)",textAlign:"center"}}>
                 Figurita generada automáticamente<br/>Completá tu perfil para mejorar tus stats
               </div>
