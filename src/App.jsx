@@ -73,31 +73,38 @@ const PIERNAS = ["Derecha","Izquierda","Ambas"];
 function FiguritaSVG({ jugador, size=280, onClick }) {
   const media = Math.round(Object.values(jugador.stats||{}).reduce((a,b)=>a+b,0)/6);
   const initials = `${jugador.nombre[0]}${jugador.apellido?.[0]||""}`;
-  const color = jugador.color||"#4a90d4";
+
+  // Color de fondo según rareza
+  const bgColor = jugador.rareza==="Oro"
+    ? {c1:"#b8860b", c2:"#ffd700", c3:"#b8860b"}
+    : jugador.rareza==="Plata"
+    ? {c1:"#708090", c2:"#c0c0c0", c3:"#708090"}
+    : {c1:"#6a3805", c2:"#cd7f32", c3:"#6a3805"};
 
   return (
     <svg width={size} height={size*1.5} viewBox="0 0 300 450" onClick={onClick}
       style={{ cursor:onClick?"pointer":"default", filter:"drop-shadow(0 6px 24px rgba(0,0,0,0.5))" }}>
       <defs>
-        <radialGradient id={`av-${jugador.id}`} cx="50%" cy="35%" r="65%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.95"/>
-          <stop offset="100%" stopColor={color} stopOpacity="0.7"/>
-        </radialGradient>
+        <linearGradient id={`av-${jugador.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={bgColor.c1}/>
+          <stop offset="50%" stopColor={bgColor.c2}/>
+          <stop offset="100%" stopColor={bgColor.c3}/>
+        </linearGradient>
         <clipPath id={`foto-${jugador.id}`}>
           <rect x="42" y="61" width="180" height="247" rx="12"/>
         </clipPath>
       </defs>
 
-      {/* Fondo/color detrás de la foto */}
+      {/* Fondo por rareza */}
       <rect x="42" y="61" width="180" height="247" rx="12" fill={`url(#av-${jugador.id})`}/>
 
-      {/* Foto con foreignObject — funciona con base64 */}
+      {/* Foto centrada o iniciales */}
       {jugador.foto ? (
         <foreignObject x="42" y="61" width="180" height="247" clipPath={`url(#foto-${jugador.id})`}>
-          <img src={jugador.foto} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+          <img src={jugador.foto} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top",display:"block"}}/>
         </foreignObject>
       ) : (
-        <text x="132" y="200" fontFamily="'Outfit',sans-serif" fontSize="64" fontWeight="900"
+        <text x="132" y="205" fontFamily="'Outfit',sans-serif" fontSize="64" fontWeight="900"
           fill="rgba(255,255,255,0.95)" textAnchor="middle"
           clipPath={`url(#foto-${jugador.id})`}>{initials}</text>
       )}
