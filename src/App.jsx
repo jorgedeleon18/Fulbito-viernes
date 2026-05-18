@@ -76,114 +76,139 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
   const initials = `${jugador.nombre[0]}${jugador.apellido?.[0]||""}`;
   const pos = jugador.posicion?.substring(0,3).toUpperCase()||"JUG";
 
+  // Colores por rareza estilo Panini
+  const panini = jugador.rareza==="Oro"
+    ? { bg1:"#e8c84a", bg2:"#f5e070", bg3:"#c9a020", stripe:"#c9a020", stripeLight:"#f0d060", textBg:"#1a1200" }
+    : jugador.rareza==="Plata"
+    ? { bg1:"#7a8a9a", bg2:"#b0c0cc", bg3:"#556070", stripe:"#556070", stripeLight:"#90a8b8", textBg:"#0a1018" }
+    : { bg1:"#7a4a20", bg2:"#c08040", bg3:"#5a3010", stripe:"#5a3010", stripeLight:"#c07030", textBg:"#100800" };
+
   return (
     <svg width={size} height={size*1.4} viewBox="0 0 280 390" onClick={onClick}
-      style={{ cursor:onClick?"pointer":"default", filter:`drop-shadow(0 8px 24px ${r.glow})` }}>
+      style={{ cursor:onClick?"pointer":"default", filter:`drop-shadow(0 8px 28px ${r.glow})`, borderRadius:16 }}>
       <defs>
-        <linearGradient id={`bg-${jugador.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#0a0a1a"/>
-          <stop offset="50%" stopColor="#141428"/>
-          <stop offset="100%" stopColor="#0a0a1a"/>
+        {/* Fondo principal degradado */}
+        <linearGradient id={`pbg-${jugador.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={panini.bg2}/>
+          <stop offset="50%" stopColor={panini.bg1}/>
+          <stop offset="100%" stopColor={panini.bg3}/>
         </linearGradient>
-        <linearGradient id={`card-${jugador.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          {jugador.rareza==="Oro" ? <>
-            <stop offset="0%" stopColor="#7c5c10"/>
-            <stop offset="30%" stopColor="#c9943a"/>
-            <stop offset="60%" stopColor="#f0c060"/>
-            <stop offset="100%" stopColor="#7c5c10"/>
-          </> : jugador.rareza==="Plata" ? <>
-            <stop offset="0%" stopColor="#3a3a4a"/>
-            <stop offset="50%" stopColor="#b0b0cc"/>
-            <stop offset="100%" stopColor="#3a3a4a"/>
-          </> : <>
-            <stop offset="0%" stopColor="#5a2e10"/>
-            <stop offset="50%" stopColor="#c07840"/>
-            <stop offset="100%" stopColor="#5a2e10"/>
-          </>}
+        {/* Fondo zona foto */}
+        <linearGradient id={`pfoto-${jugador.id}`} x1="0%" y1="0%" x2="60%" y2="100%">
+          <stop offset="0%" stopColor={panini.bg2} stopOpacity="0.7"/>
+          <stop offset="100%" stopColor={panini.bg3} stopOpacity="0.9"/>
         </linearGradient>
-        <radialGradient id={`avatar-${jugador.id}`} cx="50%" cy="40%" r="60%">
-          <stop offset="0%" stopColor={jugador.color||"#2563eb"} stopOpacity="0.8"/>
-          <stop offset="100%" stopColor={jugador.color||"#1e40af"} stopOpacity="1"/>
+        {/* Avatar bg */}
+        <radialGradient id={`pav-${jugador.id}`} cx="50%" cy="35%" r="65%">
+          <stop offset="0%" stopColor={jugador.color||"#3a7ad4"} stopOpacity="0.9"/>
+          <stop offset="100%" stopColor={jugador.color||"#1a3a7a"} stopOpacity="1"/>
         </radialGradient>
-        <clipPath id={`clip-${jugador.id}`}>
-          <rect x="10" y="10" width="260" height="370" rx="18"/>
+        <clipPath id={`pcard-${jugador.id}`}>
+          <rect x="0" y="0" width="280" height="390" rx="16"/>
         </clipPath>
-        <filter id={`glow-${jugador.id}`}>
-          <feGaussianBlur stdDeviation="3" result="blur"/>
-          <feComposite in="SourceGraphic" in2="blur"/>
-        </filter>
+        <clipPath id={`pfotoclip-${jugador.id}`}>
+          <rect x="0" y="0" width="280" height="250"/>
+        </clipPath>
+        <clipPath id={`pavatarclip-${jugador.id}`}>
+          <circle cx="140" cy="130" r="80"/>
+        </clipPath>
       </defs>
 
-      {/* Fondo carta */}
-      <rect x="0" y="0" width="280" height="390" rx="20" fill={`url(#bg-${jugador.id})`} stroke={r.border} strokeWidth="2"/>
+      <g clipPath={`url(#pcard-${jugador.id})`}>
 
-      {/* Degradado interior */}
-      <rect x="6" y="6" width="268" height="378" rx="16" fill={`url(#card-${jugador.id})`} opacity="0.15"/>
+        {/* Fondo carta completo */}
+        <rect x="0" y="0" width="280" height="390" fill={`url(#pbg-${jugador.id})`}/>
 
-      {/* Esquinas decorativas */}
-      {[[10,10],[270,10],[10,380],[270,380]].map(([x,y],i)=>(
-        <circle key={i} cx={x} cy={y} r="4" fill={r.border} opacity="0.6"/>
-      ))}
+        {/* Número grande decorativo de fondo estilo Panini */}
+        <text x="150" y="220" fontFamily="'Bebas Neue',sans-serif" fontSize="200" fill="rgba(255,255,255,0.08)" textAnchor="middle" fontWeight="900">{jugador.numero||"10"}</text>
 
-      {/* Línea superior */}
-      <line x1="20" y1="22" x2="260" y2="22" stroke={r.border} strokeWidth="0.5" opacity="0.4"/>
+        {/* Zona foto — fondo degradado */}
+        <rect x="0" y="0" width="280" height="255" fill={`url(#pfoto-${jugador.id})`}/>
 
-      {/* Rating y posición */}
-      <text x="24" y="52" fontFamily="'Bebas Neue',sans-serif" fontSize="38" fill={r.border} opacity="0.9">{media}</text>
-      <text x="24" y="68" fontFamily="'Outfit',sans-serif" fontSize="10" fontWeight="700" fill={r.border} opacity="0.7" letterSpacing="1">{pos}</text>
+        {/* Franja diagonal decorativa izquierda */}
+        <polygon points="0,0 60,0 0,120" fill="rgba(255,255,255,0.12)"/>
 
-      {/* Bandera */}
-      <text x="248" y="52" fontFamily="sans-serif" fontSize="22" textAnchor="middle">🇦🇷</text>
-      <text x="248" y="68" fontFamily="'Outfit',sans-serif" fontSize="8" fontWeight="600" fill={r.border} opacity="0.6" textAnchor="middle">ARG</text>
+        {/* Avatar o foto */}
+        {jugador.foto ? (
+          <image href={jugador.foto} x="40" y="10" width="200" height="240"
+            clipPath={`url(#pfotoclip-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
+        ) : (
+          <>
+            <circle cx="140" cy="125" r="82" fill={`url(#pav-${jugador.id})`}/>
+            <text x="140" y="148" fontFamily="'Outfit',sans-serif" fontSize="60" fontWeight="900"
+              fill="rgba(255,255,255,0.95)" textAnchor="middle">{initials}</text>
+          </>
+        )}
 
-      {/* Rareza badge */}
-      <rect x="105" y="16" width="70" height="16" rx="8" fill={r.border} opacity="0.15" stroke={r.border} strokeWidth="0.5"/>
-      <text x="140" y="28" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="800" fill={r.border} textAnchor="middle" letterSpacing="1">{jugador.rareza?.toUpperCase()}</text>
+        {/* Overlay degradado sobre foto para transición suave al panel inferior */}
+        <linearGradient id={`poverfade-${jugador.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={panini.bg3} stopOpacity="0"/>
+          <stop offset="100%" stopColor={panini.bg3} stopOpacity="1"/>
+        </linearGradient>
+        <rect x="0" y="180" width="280" height="75" fill={`url(#poverfade-${jugador.id})`}/>
 
-      {/* Avatar círculo */}
-      <circle cx="140" cy="140" r="72" fill={`url(#avatar-${jugador.id})`} opacity="0.9"/>
-      <circle cx="140" cy="140" r="72" fill="none" stroke={r.border} strokeWidth="2" opacity="0.6"/>
-      <circle cx="140" cy="140" r="68" fill="none" stroke={r.border} strokeWidth="0.5" opacity="0.3"/>
+        {/* Rating + posición — esquina superior izquierda estilo FIFA/Panini */}
+        <rect x="8" y="8" width="44" height="56" rx="8" fill="rgba(0,0,0,0.45)"/>
+        <text x="30" y="38" fontFamily="'Bebas Neue',sans-serif" fontSize="26" fill="#fff" textAnchor="middle">{media}</text>
+        <text x="30" y="56" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="800" fill={panini.stripeLight} textAnchor="middle" letterSpacing="0.5">{pos}</text>
 
-      {/* Iniciales o foto */}
-      {jugador.foto ? (
-        <image href={jugador.foto} x="68" y="68" width="144" height="144" clipPath={`circle(72px at 72px 72px)`} preserveAspectRatio="xMidYMid slice"/>
-      ) : (
-        <text x="140" y="158" fontFamily="'Outfit',sans-serif" fontSize="52" fontWeight="900" fill="#fff" textAnchor="middle" opacity="0.9">{initials}</text>
-      )}
+        {/* Bandera — esquina superior derecha */}
+        <rect x="228" y="8" width="44" height="44" rx="8" fill="rgba(0,0,0,0.4)"/>
+        <text x="250" y="36" fontFamily="sans-serif" fontSize="24" textAnchor="middle">🇦🇷</text>
 
-      {/* Número */}
-      <text x="230" y="145" fontFamily="'Bebas Neue',sans-serif" fontSize="28" fill={r.border} textAnchor="middle" opacity="0.3">{jugador.numero}</text>
+        {/* Panel inferior blanco/oscuro estilo Panini */}
+        <rect x="0" y="253" width="280" height="137" fill={panini.textBg}/>
+        <rect x="0" y="253" width="280" height="4" fill={panini.stripe}/>
 
-      {/* Nombre */}
-      <rect x="20" y="222" width="240" height="36" rx="8" fill="rgba(0,0,0,0.5)"/>
-      <text x="140" y="238" fontFamily="'Outfit',sans-serif" fontSize="16" fontWeight="900" fill="#fff" textAnchor="middle" letterSpacing="0.5">{jugador.nombre.toUpperCase()}</text>
-      <text x="140" y="252" fontFamily="'Outfit',sans-serif" fontSize="10" fontWeight="500" fill={r.border} textAnchor="middle" opacity="0.8">{jugador.apodo}</text>
+        {/* Nombre jugador */}
+        <text x="140" y="278" fontFamily="'Outfit',sans-serif" fontSize="13" fontWeight="400"
+          fill="rgba(255,255,255,0.7)" textAnchor="middle" letterSpacing="1">
+          {jugador.nombre.toUpperCase()}
+        </text>
+        <text x="140" y="296" fontFamily="'Bebas Neue',sans-serif" fontSize="22" fontWeight="900"
+          fill="#ffffff" textAnchor="middle" letterSpacing="1.5">
+          {jugador.apellido?.toUpperCase()}
+        </text>
 
-      {/* Club */}
-      <text x="140" y="272" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="600" fill="rgba(255,255,255,0.4)" textAnchor="middle" letterSpacing="1">AL-KOLIKO FC</text>
+        {/* Apodo */}
+        <text x="140" y="311" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="500"
+          fill={panini.stripeLight} textAnchor="middle" letterSpacing="1" opacity="0.9">
+          {jugador.apodo}
+        </text>
 
-      {/* Línea divisoria */}
-      <line x1="30" y1="280" x2="250" y2="280" stroke={r.border} strokeWidth="0.5" opacity="0.3"/>
+        {/* Línea divisoria */}
+        <line x1="20" y1="318" x2="260" y2="318" stroke={panini.stripe} strokeWidth="0.8" opacity="0.5"/>
 
-      {/* Stats */}
-      {[
-        ["VEL",jugador.stats?.velocidad||0],["PAS",jugador.stats?.pase||0],["DEF",jugador.stats?.defensa||0],
-        ["TIR",jugador.stats?.tiro||0],["TEC",jugador.stats?.tecnica||0],["RES",jugador.stats?.resistencia||0],
-      ].map(([k,v],i)=>{
-        const col = i<3 ? 50+i*60 : 50+(i-3)*60;
-        const row = i<3 ? 300 : 340;
-        return (
-          <g key={k}>
-            <text x={col} y={row-2} fontFamily="'Bebas Neue',sans-serif" fontSize="16" fill="#fff" textAnchor="middle" opacity="0.9">{v}</text>
-            <text x={col} y={row+8} fontFamily="'Outfit',sans-serif" fontSize="7" fontWeight="700" fill={r.border} textAnchor="middle" opacity="0.7" letterSpacing="0.5">{k}</text>
-          </g>
-        );
-      })}
+        {/* Stats — 6 en fila */}
+        {[
+          ["VEL",jugador.stats?.velocidad||0],["PAS",jugador.stats?.pase||0],["DEF",jugador.stats?.defensa||0],
+          ["TIR",jugador.stats?.tiro||0],["TEC",jugador.stats?.tecnica||0],["RES",jugador.stats?.resistencia||0],
+        ].map(([k,v],i)=>{
+          const x = 23 + i*40;
+          return (
+            <g key={k}>
+              <text x={x} y={337} fontFamily="'Bebas Neue',sans-serif" fontSize="15" fill="#fff" textAnchor="middle">{v}</text>
+              <text x={x} y={348} fontFamily="'Outfit',sans-serif" fontSize="7" fontWeight="700"
+                fill={panini.stripeLight} textAnchor="middle" letterSpacing="0.5" opacity="0.8">{k}</text>
+            </g>
+          );
+        })}
 
-      {/* Línea bottom */}
-      <line x1="20" y1="370" x2="260" y2="370" stroke={r.border} strokeWidth="0.5" opacity="0.3"/>
-      <text x="140" y="382" fontFamily="'Outfit',sans-serif" fontSize="7" fill={r.border} textAnchor="middle" opacity="0.4" letterSpacing="2">FULBITO DE LOS VIERNES 2025</text>
+        {/* Línea divisoria 2 */}
+        <line x1="20" y1="354" x2="260" y2="354" stroke={panini.stripe} strokeWidth="0.8" opacity="0.3"/>
+
+        {/* Club + rareza abajo */}
+        <text x="20" y="372" fontFamily="'Outfit',sans-serif" fontSize="8" fontWeight="700"
+          fill="rgba(255,255,255,0.5)" letterSpacing="1">AL-KOLIKO FC</text>
+        <rect x="190" y="361" width="72" height="14" rx="4" fill={panini.stripe} opacity="0.6"/>
+        <text x="226" y="372" fontFamily="'Outfit',sans-serif" fontSize="8" fontWeight="800"
+          fill="#fff" textAnchor="middle" letterSpacing="1">{jugador.rareza?.toUpperCase()}</text>
+
+        {/* Borde exterior */}
+        <rect x="1" y="1" width="278" height="388" rx="15" fill="none" stroke={r.border} strokeWidth="2.5" opacity="0.7"/>
+        <rect x="4" y="4" width="272" height="382" rx="13" fill="none" stroke={r.border} strokeWidth="0.8" opacity="0.3"/>
+
+      </g>
     </svg>
   );
 }
