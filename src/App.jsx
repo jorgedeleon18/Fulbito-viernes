@@ -76,12 +76,156 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
   const initials = `${jugador.nombre[0]}${jugador.apellido?.[0]||""}`;
   const pos = jugador.posicion?.substring(0,3).toUpperCase()||"JUG";
 
-  // Colores por rareza estilo Panini
+  // Colores por rareza
   const panini = jugador.rareza==="Oro"
-    ? { bg1:"#e8c84a", bg2:"#f5e070", bg3:"#c9a020", stripe:"#c9a020", stripeLight:"#f0d060", textBg:"#1a1200" }
+    ? { bg1:"#d4a017", bg2:"#f0c030", bg3:"#a07010", stripe:"#c9a020", stripeLight:"#f5d060", fotoBg:"#e8d080", numColor:"rgba(255,220,80,0.15)" }
     : jugador.rareza==="Plata"
-    ? { bg1:"#7a8a9a", bg2:"#b0c0cc", bg3:"#556070", stripe:"#556070", stripeLight:"#90a8b8", textBg:"#0a1018" }
-    : { bg1:"#7a4a20", bg2:"#c08040", bg3:"#5a3010", stripe:"#5a3010", stripeLight:"#c07030", textBg:"#100800" };
+    ? { bg1:"#607080", bg2:"#90a8b8", bg3:"#405060", stripe:"#607080", stripeLight:"#a0c0d0", fotoBg:"#b0c8d8", numColor:"rgba(160,200,220,0.15)" }
+    : { bg1:"#6a3818", bg2:"#b06828", bg3:"#4a2808", stripe:"#7a4820", stripeLight:"#d08040", fotoBg:"#c07840", numColor:"rgba(200,120,60,0.15)" };
+
+  // Dimensiones del marco físico Panini
+  // SVG total: 300x420 — marco blanco de 12px cada lado
+  // Interior carta: x=12 y=12 w=276 h=396
+
+  return (
+    <svg width={size} height={size*1.4} viewBox="0 0 300 420" onClick={onClick}
+      style={{ cursor:onClick?"pointer":"default", filter:`drop-shadow(0 6px 20px ${r.glow})` }}>
+      <defs>
+        <linearGradient id={`pbg-${jugador.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={panini.bg2}/>
+          <stop offset="60%" stopColor={panini.bg1}/>
+          <stop offset="100%" stopColor={panini.bg3}/>
+        </linearGradient>
+        <linearGradient id={`pfade-${jugador.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={panini.bg3} stopOpacity="0"/>
+          <stop offset="70%" stopColor={panini.bg3} stopOpacity="0.5"/>
+          <stop offset="100%" stopColor="#f5f5f0" stopOpacity="1"/>
+        </linearGradient>
+        <radialGradient id={`pav-${jugador.id}`} cx="50%" cy="38%" r="62%">
+          <stop offset="0%" stopColor={jugador.color||"#4a90d4"} stopOpacity="0.85"/>
+          <stop offset="100%" stopColor={jugador.color||"#1a3a7a"} stopOpacity="1"/>
+        </radialGradient>
+        <clipPath id={`pcard-${jugador.id}`}>
+          <rect x="12" y="12" width="276" height="396" rx="10"/>
+        </clipPath>
+        <clipPath id={`pfotoclip-${jugador.id}`}>
+          <rect x="12" y="12" width="276" height="270"/>
+        </clipPath>
+        <filter id={`pshadow-${jugador.id}`}>
+          <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="rgba(0,0,0,0.3)"/>
+        </filter>
+      </defs>
+
+      {/* ── MARCO FÍSICO BLANCO EXTERIOR (estilo sticker Panini) ── */}
+      <rect x="0" y="0" width="300" height="420" rx="14" fill="#f5f5f0"/>
+      {/* Sombra interior del marco */}
+      <rect x="2" y="2" width="296" height="416" rx="13" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="3"/>
+
+      {/* ── INTERIOR DE LA CARTA ── */}
+      <g clipPath={`url(#pcard-${jugador.id})`}>
+
+        {/* Fondo degradado de color (zona foto) */}
+        <rect x="12" y="12" width="276" height="396" fill={`url(#pbg-${jugador.id})`}/>
+
+        {/* Número grande decorativo de fondo */}
+        <text x="158" y="245" fontFamily="'Bebas Neue',sans-serif" fontSize="220"
+          fill={panini.numColor} textAnchor="middle" fontWeight="900">{jugador.numero||"10"}</text>
+
+        {/* Foto o avatar */}
+        {jugador.foto ? (
+          <image href={jugador.foto} x="12" y="12" width="276" height="268"
+            clipPath={`url(#pfotoclip-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
+        ) : (
+          <>
+            <circle cx="150" cy="138" r="88" fill={`url(#pav-${jugador.id})`} opacity="0.95"/>
+            <text x="150" y="165" fontFamily="'Outfit',sans-serif" fontSize="66" fontWeight="900"
+              fill="rgba(255,255,255,0.95)" textAnchor="middle">{initials}</text>
+          </>
+        )}
+
+        {/* Fade foto → panel blanco */}
+        <rect x="12" y="200" width="276" height="82" fill={`url(#pfade-${jugador.id})`}/>
+
+        {/* ── RATING + POSICIÓN — esquina sup izq ── */}
+        <rect x="18" y="18" width="46" height="60" rx="6" fill="rgba(0,0,0,0.5)"/>
+        <text x="41" y="50" fontFamily="'Bebas Neue',sans-serif" fontSize="28"
+          fill="#fff" textAnchor="middle">{media}</text>
+        <text x="41" y="68" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="800"
+          fill={panini.stripeLight} textAnchor="middle" letterSpacing="0.5">{pos}</text>
+
+        {/* ── BANDERA — esquina sup der ── */}
+        <rect x="236" y="18" width="46" height="46" rx="6" fill="rgba(0,0,0,0.45)"/>
+        <text x="259" y="47" fontFamily="sans-serif" fontSize="26" textAnchor="middle">🇦🇷</text>
+
+        {/* ── PANEL BLANCO INFERIOR ── */}
+        <rect x="12" y="280" width="276" height="128" fill="#f5f5f0"/>
+
+        {/* Franja de color separadora */}
+        <rect x="12" y="280" width="276" height="5" fill={panini.stripe}/>
+
+        {/* Nombre */}
+        <text x="150" y="306" fontFamily="'Outfit',sans-serif" fontSize="12" fontWeight="400"
+          fill="#444" textAnchor="middle" letterSpacing="2">
+          {jugador.nombre.toUpperCase()}
+        </text>
+        <text x="150" y="326" fontFamily="'Bebas Neue',sans-serif" fontSize="24" fontWeight="900"
+          fill="#111" textAnchor="middle" letterSpacing="1">
+          {jugador.apellido?.toUpperCase()}
+        </text>
+
+        {/* Club */}
+        <text x="150" y="340" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="600"
+          fill={panini.stripe} textAnchor="middle" letterSpacing="1.5">
+          AL-KOLIKO FC
+        </text>
+
+        {/* Línea divisoria */}
+        <line x1="30" y1="347" x2="270" y2="347" stroke="#ddd" strokeWidth="1"/>
+
+        {/* Stats */}
+        {[
+          ["VEL",jugador.stats?.velocidad||0],["PAS",jugador.stats?.pase||0],["DEF",jugador.stats?.defensa||0],
+          ["TIR",jugador.stats?.tiro||0],["TEC",jugador.stats?.tecnica||0],["RES",jugador.stats?.resistencia||0],
+        ].map(([k,v],i)=>{
+          const x = 28 + i*42;
+          return (
+            <g key={k}>
+              <text x={x} y={364} fontFamily="'Bebas Neue',sans-serif" fontSize="15"
+                fill="#111" textAnchor="middle">{v}</text>
+              <text x={x} y={374} fontFamily="'Outfit',sans-serif" fontSize="7" fontWeight="700"
+                fill={panini.stripe} textAnchor="middle" letterSpacing="0.5">{k}</text>
+            </g>
+          );
+        })}
+
+        {/* Número de colección abajo izq */}
+        <text x="22" y="399" fontFamily="'Outfit',sans-serif" fontSize="7" fontWeight="600"
+          fill="#999" letterSpacing="0.5">#{String(jugador.id).padStart(3,"0")}</text>
+
+        {/* "PANINI" estilo badge abajo der */}
+        <rect x="218" y="388" width="58" height="14" rx="3" fill={panini.stripe}/>
+        <text x="247" y="399" fontFamily="'Bebas Neue',sans-serif" fontSize="11"
+          fill="#fff" textAnchor="middle" letterSpacing="2">FULBITO</text>
+
+      </g>
+
+      {/* Borde interior de la carta (sobre el marco blanco) */}
+      <rect x="12" y="12" width="276" height="396" rx="10" fill="none"
+        stroke={r.border} strokeWidth="1.5" opacity="0.6"/>
+
+      {/* ── FRANJA SUPERIOR COLORIDA (estilo Panini: nombre álbum) ── */}
+      <rect x="12" y="12" width="276" height="22" rx="0" fill={panini.stripe} opacity="0.92"/>
+      <rect x="12" y="12" width="276" height="22"
+        style={{borderRadius:"10px 10px 0 0"}}
+        fill={panini.stripe} opacity="0"/>
+      {/* fix esquinas redondeadas arriba */}
+      <path d="M22,12 L276,12 Q288,12 288,22 L288,34 L12,34 L12,22 Q12,12 22,12 Z" fill={panini.stripe} opacity="0.92"/>
+      <text x="150" y="27" fontFamily="'Bebas Neue',sans-serif" fontSize="12"
+        fill="#fff" textAnchor="middle" letterSpacing="3" opacity="0.95">AL-KOLIKO FC · 2025</text>
+
+    </svg>
+  );
+}
 
   return (
     <svg width={size} height={size*1.4} viewBox="0 0 280 390" onClick={onClick}
