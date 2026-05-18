@@ -88,16 +88,18 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
         </clipPath>
       </defs>
 
-      {/* Foto o iniciales en el hueco */}
+      {/* Fondo/color detrás de la foto */}
+      <rect x="42" y="61" width="180" height="247" rx="12" fill={`url(#av-${jugador.id})`}/>
+
+      {/* Foto con foreignObject — funciona con base64 */}
       {jugador.foto ? (
-        <image href={jugador.foto} x="42" y="61" width="180" height="247"
-          clipPath={`url(#foto-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
+        <foreignObject x="42" y="61" width="180" height="247" clipPath={`url(#foto-${jugador.id})`}>
+          <img src={jugador.foto} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+        </foreignObject>
       ) : (
-        <g clipPath={`url(#foto-${jugador.id})`}>
-          <rect x="42" y="61" width="180" height="247" fill={`url(#av-${jugador.id})`}/>
-          <text x="132" y="200" fontFamily="'Outfit',sans-serif" fontSize="64" fontWeight="900"
-            fill="rgba(255,255,255,0.95)" textAnchor="middle">{initials}</text>
-        </g>
+        <text x="132" y="200" fontFamily="'Outfit',sans-serif" fontSize="64" fontWeight="900"
+          fill="rgba(255,255,255,0.95)" textAnchor="middle"
+          clipPath={`url(#foto-${jugador.id})`}>{initials}</text>
       )}
 
       {/* Marco PNG encima */}
@@ -264,7 +266,8 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
   const [savedOk, setSavedOk] = useState(false);
   const fileRef = useRef();
 
-
+  // Sincronizar form cuando jugador cambia desde afuera
+  useEffect(() => { setForm(f=>({...jugador,...f, foto:jugador.foto||f.foto})); }, [jugador.id]);
 
   if(!jugador) return null;
   const media = Math.round(Object.values(jugador.stats||{}).reduce((a,b)=>a+b,0)/6);
@@ -986,6 +989,7 @@ export default function App() {
   const handlePlayerClick = (j) => setSelectedPlayer(j);
   const handlePlayerSave = (updated) => {
     setUsers(prev=>prev.map(u=>u.id===updated.id?{...u,...updated}:u));
+    setSelectedPlayer(prev=>prev?{...prev,...updated}:prev);
     if(loggedUser?.id===updated.id) setLoggedUser(prev=>({...prev,...updated}));
   };
 
