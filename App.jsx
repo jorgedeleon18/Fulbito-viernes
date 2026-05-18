@@ -734,7 +734,7 @@ function NavBottom({ active, onChange, pendiente }) {
 /* ─────────────────────────────────────────
    PAGE: INICIO
 ───────────────────────────────────────── */
-function PageInicio({ user, partido, stats, onVotar }) {
+function PageInicio({ user, partido, stats, onVotar, onPlayerClick }) {
   const [confirmado, setConfirmado] = useState(partido?.confirmados?.includes(user.id));
   const miStats = stats.find(s=>s.id===user.id);
   const media = Math.round(Object.values(miStats?.stats||{}).reduce((a,b)=>a+b,0)/6)||65;
@@ -752,7 +752,7 @@ function PageInicio({ user, partido, stats, onVotar }) {
           <span style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.5)"}}>📍 {partido.ubicacion}</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:14}}>
-          {partido.jugadores.slice(0,6).map((id,i)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:i>0?-6:0,zIndex:10-i}}><Av j={j} size={26} border/></div>:null; })}
+          {partido.jugadores.slice(0,6).map((id,i)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:i>0?-6:0,zIndex:10-i,cursor:"pointer"}} onClick={()=>onPlayerClick&&onPlayerClick(j)}><Av j={j} size={26} border/></div>:null; })}
           <span style={{marginLeft:8,fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)"}}>{partido.confirmados?.length||0} confirmados</span>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
@@ -1054,7 +1054,7 @@ export default function App() {
   );
 
   const PAGES = [
-    <PageInicio user={loggedUser} partido={partido} stats={users} onVotar={()=>setTab(0)}/>,
+    <PageInicio user={loggedUser} partido={partido} stats={users} onVotar={()=>setTab(0)} onPlayerClick={handlePlayerClick}/>,
     <PageTemporada user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>,
     <PageCincoIdeal stats={users} onPlayerClick={handlePlayerClick}/>,
     <PageFeed user={loggedUser} stats={users} feed={feed} onFeedUpdate={setFeed}/>,
@@ -1064,10 +1064,10 @@ export default function App() {
   return (
     <>
       <style>{CSS}</style>
-      {selectedPlayer&&(
-        <PlayerModal jugador={selectedPlayer} onClose={()=>setSelectedPlayer(null)} isAdmin={loggedUser.isAdmin} onSave={handlePlayerSave}/>
-      )}
       <div style={{maxWidth:520,margin:"0 auto",minHeight:"100dvh",position:"relative"}}>
+        {selectedPlayer&&(
+          <PlayerModal jugador={selectedPlayer} onClose={()=>setSelectedPlayer(null)} isAdmin={loggedUser.isAdmin} onSave={handlePlayerSave}/>
+        )}
         <Header user={loggedUser} onAdmin={()=>setShowAdmin(true)} onLogout={handleLogout} onProfile={()=>handlePlayerClick(loggedUser)}/>
         <div style={{padding:"14px 14px 82px",position:"relative",zIndex:1}}>
           {PAGES[tab]}
