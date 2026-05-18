@@ -75,13 +75,17 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
   const initials = `${jugador.nombre[0]}${jugador.apellido?.[0]||""}`;
   const color = jugador.color||"#4a90d4";
 
-  // El PNG del marco tiene proporción ~862x1144 ≈ 1:1.328
-  // viewBox lo mantenemos 300x398 para esa proporción
-  // Hueco foto en el PNG: aprox x=7% y=9.5% w=66% h=66%
-  // En 300x398: x=21 y=38 w=198 h=263
+  // PNG 1024x1536 → viewBox 300x450
+  // Hueco negro medido px: left=123 top=50 right=949 bottom=1051
+  // En %: x=12% y=3.3% w=81.3% h=65.1%
+  // En viewBox 300x450: x=36 y=15 w=244 h=293
+  // Filas panel inferior medidas:
+  // Fila1 centro: ~72% de 450 = y=324
+  // Fila2 centro: ~76% de 450 = y=342
+  // Fila3 centro: ~80% de 450 = y=360
 
   return (
-    <svg width={size} height={size*1.328} viewBox="0 0 300 398" onClick={onClick}
+    <svg width={size} height={size*1.5} viewBox="0 0 300 450" onClick={onClick}
       style={{ cursor:onClick?"pointer":"default", filter:"drop-shadow(0 6px 24px rgba(0,0,0,0.5))" }}>
       <defs>
         <radialGradient id={`av-${jugador.id}`} cx="50%" cy="35%" r="65%">
@@ -89,44 +93,44 @@ function FiguritaSVG({ jugador, size=280, onClick }) {
           <stop offset="100%" stopColor={color} stopOpacity="0.7"/>
         </radialGradient>
         <clipPath id={`foto-${jugador.id}`}>
-          <rect x="21" y="38" width="198" height="263" rx="18"/>
+          <rect x="36" y="15" width="244" height="293" rx="14"/>
         </clipPath>
       </defs>
 
-      {/* ── FOTO O AVATAR en el hueco negro del marco ── */}
+      {/* Foto o iniciales DEBAJO del marco */}
       {jugador.foto ? (
-        <image href={jugador.foto} x="21" y="38" width="198" height="263"
+        <image href={jugador.foto} x="36" y="15" width="244" height="293"
           clipPath={`url(#foto-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
       ) : (
         <g clipPath={`url(#foto-${jugador.id})`}>
-          <rect x="21" y="38" width="198" height="263" fill={`url(#av-${jugador.id})`}/>
-          <text x="120" y="192" fontFamily="'Outfit',sans-serif" fontSize="72" fontWeight="900"
+          <rect x="36" y="15" width="244" height="293" fill={`url(#av-${jugador.id})`}/>
+          <text x="158" y="178" fontFamily="'Outfit',sans-serif" fontSize="72" fontWeight="900"
             fill="rgba(255,255,255,0.95)" textAnchor="middle">{initials}</text>
         </g>
       )}
 
-      {/* ── MARCO PNG encima de la foto ── */}
-      <image href="/marco.png" x="0" y="0" width="300" height="398" preserveAspectRatio="xMidYMid meet"/>
+      {/* Marco PNG encima — tapa los bordes de la foto */}
+      <image href="/marco.png" x="0" y="0" width="300" height="450" preserveAspectRatio="xMidYMid meet"/>
 
-      {/* ── MEDIA arriba izquierda ── */}
-      <text x="30" y="32" fontFamily="'Bebas Neue',sans-serif" fontSize="20"
+      {/* Media — arriba izquierda sobre el marco */}
+      <text x="44" y="28" fontFamily="'Bebas Neue',sans-serif" fontSize="20"
         fill="white" textAnchor="middle" fontWeight="900">{media}</text>
 
-      {/* ── NOMBRE en fila 1 del panel inferior ── */}
-      <text x="148" y="321" fontFamily="'Outfit',sans-serif" fontSize="14"
-        fill="white" textAnchor="middle" letterSpacing="0.5">
-        <tspan fontWeight="400">{jugador.nombre.toUpperCase()} </tspan>
+      {/* Fila 1 — NOMBRE APELLIDO */}
+      <text x="148" y="324" fontFamily="'Outfit',sans-serif" fontSize="13"
+        fill="white" textAnchor="middle">
+        <tspan fontWeight="300">{jugador.nombre.toUpperCase()} </tspan>
         <tspan fontWeight="900">{jugador.apellido?.toUpperCase()}</tspan>
       </text>
 
-      {/* ── STATS en fila 2 ── */}
-      <text x="148" y="349" fontFamily="'Outfit',sans-serif" fontSize="11"
-        fill="white" textAnchor="middle" letterSpacing="0.5">
-        {`VEL ${jugador.stats?.velocidad||0}  |  PAS ${jugador.stats?.pase||0}  |  DEF ${jugador.stats?.defensa||0}  |  TIR ${jugador.stats?.tiro||0}  |  TEC ${jugador.stats?.tecnica||0}`}
+      {/* Fila 2 — Stats */}
+      <text x="148" y="344" fontFamily="'Outfit',sans-serif" fontSize="8.5"
+        fill="white" textAnchor="middle">
+        {`VEL ${jugador.stats?.velocidad||0} | PAS ${jugador.stats?.pase||0} | DEF ${jugador.stats?.defensa||0} | TIR ${jugador.stats?.tiro||0} | TEC ${jugador.stats?.tecnica||0} | RES ${jugador.stats?.resistencia||0}`}
       </text>
 
-      {/* ── CLUB en fila 3 ── */}
-      <text x="140" y="374" fontFamily="'Outfit',sans-serif" fontSize="12" fontWeight="700"
+      {/* Fila 3 — Club */}
+      <text x="140" y="363" fontFamily="'Outfit',sans-serif" fontSize="11" fontWeight="700"
         fill="white" textAnchor="middle" letterSpacing="1">
         AL-KOLIKO FC
       </text>
