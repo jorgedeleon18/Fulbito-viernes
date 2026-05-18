@@ -322,12 +322,18 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
   const [editing, setEditing] = useState(false);
   const [tab, setTab] = useState("stats");
   const [form, setForm] = useState({...jugador});
+  const [savedOk, setSavedOk] = useState(false);
   const fileRef = useRef();
 
   if(!jugador) return null;
   const media = Math.round(Object.values(jugador.stats||{}).reduce((a,b)=>a+b,0)/6);
 
-  const save = () => { onSave(form); setEditing(false); };
+  const save = () => {
+    onSave(form);
+    setEditing(false);
+    setSavedOk(true);
+    setTimeout(() => setSavedOk(false), 3000);
+  };
 
   const handleFoto = (e) => {
     const file = e.target.files?.[0];
@@ -339,7 +345,7 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
 
   return (
     <div className="fade-in" style={{position:"fixed",inset:0,zIndex:500,background:"rgba(0,0,0,0.88)",backdropFilter:"blur(16px)",display:"flex",alignItems:"flex-end",justifyContent:"center",padding:"0 0 0 0"}}
-      onClick={e=>{ if(e.target===e.currentTarget) onClose(); }}>
+      onMouseDown={e=>{ if(e.target===e.currentTarget) onClose(); }}>
       <div className="slide-up" style={{width:"100%",maxWidth:520,background:"#0a1020",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"24px 24px 0 0",maxHeight:"92dvh",overflow:"auto",paddingBottom:24}}>
         {/* Header */}
         <div style={{position:"sticky",top:0,background:"#0a1020",padding:"14px 16px 0",zIndex:10}}>
@@ -347,6 +353,12 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
             <div style={{fontFamily:"'Bebas Neue'",fontSize:20,letterSpacing:1}}>{jugador.nombre} {jugador.apellido}</div>
             <button onClick={onClose} style={{background:"rgba(255,255,255,0.08)",border:"none",color:"rgba(255,255,255,0.6)",width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:18}}>×</button>
           </div>
+
+          {savedOk && (
+            <div style={{background:"#16a34a",color:"#fff",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:600,marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+              ✅ Perfil guardado correctamente
+            </div>
+          )}
 
           <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",paddingBottom:4}}>
             {["stats","figurita","editar"].filter(t=>t!=="editar"||isAdmin).map(t=>(
@@ -453,6 +465,11 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
                   <BtnOutline onClick={()=>setTab("stats")} style={{flex:1}}>Cancelar</BtnOutline>
                   <BtnGreen onClick={save} style={{flex:1}}>💾 Guardar</BtnGreen>
                 </div>
+                {savedOk&&(
+                  <div style={{marginTop:8,background:"#16a34a",color:"#fff",borderRadius:10,padding:"10px 14px",fontSize:14,fontWeight:700,textAlign:"center"}}>
+                    ✅ ¡Cambios guardados!
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -722,7 +739,7 @@ function NavBottom({ active, onChange, pendiente }) {
 /* ─────────────────────────────────────────
    PAGE: INICIO
 ───────────────────────────────────────── */
-function PageInicio({ user, partido, stats, onVotar }) {
+function PageInicio({ user, partido, stats, onVotar, onPlayerClick }) {
   const [confirmado, setConfirmado] = useState(partido?.confirmados?.includes(user.id));
   const miStats = stats.find(s=>s.id===user.id);
   const media = Math.round(Object.values(miStats?.stats||{}).reduce((a,b)=>a+b,0)/6)||65;
@@ -740,7 +757,7 @@ function PageInicio({ user, partido, stats, onVotar }) {
           <span style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.5)"}}>📍 {partido.ubicacion}</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:14}}>
-          {partido.jugadores.slice(0,6).map((id,i)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:i>0?-6:0,zIndex:10-i}}><Av j={j} size={26} border/></div>:null; })}
+          {partido.jugadores.slice(0,6).map((id,i)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:i>0?-6:0,zIndex:10-i,cursor:"pointer"}} onClick={()=>onPlayerClick&&onPlayerClick(j)}><Av j={j} size={26} border/></div>:null; })}
           <span style={{marginLeft:8,fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)"}}>{partido.confirmados?.length||0} confirmados</span>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
@@ -1028,7 +1045,6 @@ export default function App() {
   const handlePlayerClick = (j) => setSelectedPlayer(j);
   const handlePlayerSave = (updated) => {
     setUsers(prev=>prev.map(u=>u.id===updated.id?{...u,...updated}:u));
-    setSelectedPlayer(updated);
     if(loggedUser?.id===updated.id) setLoggedUser(prev=>({...prev,...updated}));
   };
 
@@ -1041,24 +1057,20 @@ export default function App() {
     </>
   );
 
-  const PAGES = [
-    <PageInicio user={loggedUser} partido={partido} stats={users} onVotar={()=>setTab(0)}/>,
-    <PageTemporada user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>,
-    <PageCincoIdeal stats={users} onPlayerClick={handlePlayerClick}/>,
-    <PageFeed user={loggedUser} stats={users} feed={feed} onFeedUpdate={setFeed}/>,
-    <PageCards user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>,
-  ];
-
   return (
     <>
       <style>{CSS}</style>
-      {selectedPlayer&&(
-        <PlayerModal jugador={selectedPlayer} onClose={()=>setSelectedPlayer(null)} isAdmin={loggedUser.isAdmin} onSave={handlePlayerSave}/>
-      )}
       <div style={{maxWidth:520,margin:"0 auto",minHeight:"100dvh",position:"relative"}}>
+        {selectedPlayer&&(
+          <PlayerModal jugador={selectedPlayer} onClose={()=>setSelectedPlayer(null)} isAdmin={loggedUser.isAdmin} onSave={handlePlayerSave}/>
+        )}
         <Header user={loggedUser} onAdmin={()=>setShowAdmin(true)} onLogout={handleLogout} onProfile={()=>handlePlayerClick(loggedUser)}/>
         <div style={{padding:"14px 14px 82px",position:"relative",zIndex:1}}>
-          {PAGES[tab]}
+          {tab===0&&<PageInicio user={loggedUser} partido={partido} stats={users} onVotar={()=>setTab(0)} onPlayerClick={handlePlayerClick}/>}
+          {tab===1&&<PageTemporada user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>}
+          {tab===2&&<PageCincoIdeal stats={users} onPlayerClick={handlePlayerClick}/>}
+          {tab===3&&<PageFeed user={loggedUser} stats={users} feed={feed} onFeedUpdate={setFeed}/>}
+          {tab===4&&<PageCards user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>}
         </div>
         <NavBottom active={tab} onChange={i=>{setTab(i);setShowAdmin(false);}} pendiente={1}/>
       </div>
