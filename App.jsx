@@ -356,7 +356,7 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
 
           {savedOk && (
             <div style={{background:"#16a34a",color:"#fff",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:600,marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
-              ✅ Perfil guardado correctamente
+              ✅ SE GUARDARON LOS CAMBIOS
             </div>
           )}
 
@@ -467,7 +467,7 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
                 </div>
                 {savedOk&&(
                   <div style={{marginTop:8,background:"#16a34a",color:"#fff",borderRadius:10,padding:"10px 14px",fontSize:14,fontWeight:700,textAlign:"center"}}>
-                    ✅ ¡Cambios guardados!
+                    ✅ SE GUARDARON LOS CAMBIOS
                   </div>
                 )}
               </div>
