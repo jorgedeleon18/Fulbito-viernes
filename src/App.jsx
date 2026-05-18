@@ -71,124 +71,162 @@ const PIERNAS = ["Derecha","Izquierda","Ambas"];
    FIGURITA SVG
 ───────────────────────────────────────── */
 function FiguritaSVG({ jugador, size=280, onClick }) {
-  const r = RAREZA_CONFIG[jugador.rareza] || RAREZA_CONFIG["Bronce"];
   const media = Math.round(Object.values(jugador.stats||{}).reduce((a,b)=>a+b,0)/6);
   const initials = `${jugador.nombre[0]}${jugador.apellido?.[0]||""}`;
-  const pos = jugador.posicion?.substring(0,3).toUpperCase()||"JUG";
 
-  const panini = jugador.rareza==="Oro"
-    ? { bg1:"#d4a017", bg2:"#f0c030", bg3:"#a07010", stripe:"#c9a020", stripeLight:"#f5d060", numColor:"rgba(255,220,80,0.15)" }
-    : jugador.rareza==="Plata"
-    ? { bg1:"#607080", bg2:"#90a8b8", bg3:"#405060", stripe:"#607080", stripeLight:"#a0c0d0", numColor:"rgba(160,200,220,0.15)" }
-    : { bg1:"#6a3818", bg2:"#b06828", bg3:"#4a2808", stripe:"#7a4820", stripeLight:"#d08040", numColor:"rgba(200,120,60,0.15)" };
+  // Color de fondo según rareza — teal para todos, más saturado en Oro
+  const bgColor = jugador.rareza==="Oro" ? "#4a9e8a"
+    : jugador.rareza==="Plata" ? "#5a8fa8"
+    : "#5a9e8a";
+  const bgDark  = jugador.rareza==="Oro" ? "#2a7060"
+    : jugador.rareza==="Plata" ? "#3a6880"
+    : "#3a7060";
+  const accentColor = jugador.rareza==="Oro" ? "#f0c030"
+    : jugador.rareza==="Plata" ? "#c0d8e8"
+    : "#ffffff";
 
   return (
-    <svg width={size} height={size*1.4} viewBox="0 0 300 420" onClick={onClick}
-      style={{ cursor:onClick?"pointer":"default", filter:`drop-shadow(0 6px 20px ${r.glow})` }}>
+    <svg width={size} height={size*1.45} viewBox="0 0 300 435" onClick={onClick}
+      style={{ cursor:onClick?"pointer":"default", filter:"drop-shadow(0 6px 24px rgba(0,0,0,0.5))" }}>
       <defs>
-        <linearGradient id={`pbg-${jugador.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={panini.bg2}/>
-          <stop offset="60%" stopColor={panini.bg1}/>
-          <stop offset="100%" stopColor={panini.bg3}/>
+        <linearGradient id={`bg-${jugador.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={bgColor}/>
+          <stop offset="100%" stopColor={bgDark}/>
         </linearGradient>
-        <linearGradient id={`pfade-${jugador.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor={panini.bg3} stopOpacity="0"/>
-          <stop offset="70%" stopColor={panini.bg3} stopOpacity="0.5"/>
-          <stop offset="100%" stopColor="#f5f5f0" stopOpacity="1"/>
-        </linearGradient>
-        <radialGradient id={`pav-${jugador.id}`} cx="50%" cy="38%" r="62%">
-          <stop offset="0%" stopColor={jugador.color||"#4a90d4"} stopOpacity="0.85"/>
+        <radialGradient id={`av-${jugador.id}`} cx="50%" cy="35%" r="65%">
+          <stop offset="0%" stopColor={jugador.color||"#4a90d4"} stopOpacity="0.9"/>
           <stop offset="100%" stopColor={jugador.color||"#1a3a7a"} stopOpacity="1"/>
         </radialGradient>
-        <clipPath id={`pcard-${jugador.id}`}>
-          <rect x="12" y="12" width="276" height="396" rx="10"/>
+        <clipPath id={`card-${jugador.id}`}>
+          <rect x="0" y="0" width="300" height="435" rx="16"/>
         </clipPath>
-        <clipPath id={`pfotoclip-${jugador.id}`}>
-          <rect x="12" y="12" width="276" height="270"/>
+        <clipPath id={`foto-${jugador.id}`}>
+          <rect x="18" y="18" width="200" height="268" rx="14"/>
         </clipPath>
+        <filter id={`shadow-${jugador.id}`}>
+          <feDropShadow dx="2" dy="3" stdDeviation="4" floodColor="rgba(0,0,0,0.35)"/>
+        </filter>
       </defs>
 
-      {/* Marco blanco exterior estilo Panini */}
-      <rect x="0" y="0" width="300" height="420" rx="14" fill="#f5f5f0"/>
-      <rect x="2" y="2" width="296" height="416" rx="13" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="3"/>
+      <g clipPath={`url(#card-${jugador.id})`}>
 
-      <g clipPath={`url(#pcard-${jugador.id})`}>
-        {/* Fondo degradado zona foto */}
-        <rect x="12" y="12" width="276" height="396" fill={`url(#pbg-${jugador.id})`}/>
+        {/* ── FONDO PRINCIPAL ── */}
+        <rect x="0" y="0" width="300" height="435" fill={`url(#bg-${jugador.id})`}/>
 
-        {/* Número grande decorativo */}
-        <text x="158" y="245" fontFamily="'Bebas Neue',sans-serif" fontSize="220"
-          fill={panini.numColor} textAnchor="middle" fontWeight="900">{jugador.numero||"10"}</text>
+        {/* ── FRANJA DIAGONAL ARGENTINA arriba izquierda ── */}
+        <polygon points="0,0 110,0 0,110" fill="rgba(255,255,255,0.18)"/>
+        <polygon points="0,0 85,0 0,85" fill="rgba(135,190,220,0.35)"/>
+        <polygon points="0,0 55,0 0,55" fill="rgba(255,255,255,0.25)"/>
 
-        {/* Foto o avatar */}
+        {/* ── LETRAS GRANDES "BEZ" (ciudad abreviada) derecha ── */}
+        <text x="308" y="320" fontFamily="'Bebas Neue',sans-serif" fontSize="120"
+          fill="rgba(255,255,255,0.10)" textAnchor="end" fontWeight="900" letterSpacing="-4">
+          {jugador.ciudad?.substring(0,3).toUpperCase()||"ARG"}
+        </text>
+
+        {/* ── ESTRELLA DECORATIVA ── */}
+        <text x="262" y="95" fontFamily="sans-serif" fontSize="22" fill="rgba(255,255,255,0.7)">✦</text>
+        <text x="275" y="120" fontFamily="sans-serif" fontSize="10" fill="rgba(255,255,255,0.4)">✦</text>
+
+        {/* ── PUNTOS DECORATIVOS ── */}
+        {[0,1,2,3,4].map(i=>[0,1,2,3,4].map(j=>(
+          <circle key={`${i}-${j}`} cx={240+j*8} cy={130+i*8} r="1.5"
+            fill="rgba(255,255,255,0.18)"/>
+        )))}
+
+        {/* ── MARCO FOTO — rect redondeado blanco con sombra ── */}
+        <rect x="14" y="14" width="208" height="276" rx="16"
+          fill="rgba(0,0,0,0.25)" filter={`url(#shadow-${jugador.id})`}/>
+        <rect x="14" y="14" width="208" height="276" rx="16" fill="white"/>
+
+        {/* Foto o iniciales dentro del marco */}
         {jugador.foto ? (
-          <image href={jugador.foto} x="12" y="12" width="276" height="268"
-            clipPath={`url(#pfotoclip-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
+          <image href={jugador.foto} x="14" y="14" width="208" height="276"
+            clipPath={`url(#foto-${jugador.id})`} preserveAspectRatio="xMidYMid slice"/>
         ) : (
           <>
-            <circle cx="150" cy="138" r="88" fill={`url(#pav-${jugador.id})`} opacity="0.95"/>
-            <text x="150" y="165" fontFamily="'Outfit',sans-serif" fontSize="66" fontWeight="900"
+            <rect x="14" y="14" width="208" height="276" rx="16" fill={`url(#av-${jugador.id})`}/>
+            <text x="118" y="168" fontFamily="'Outfit',sans-serif" fontSize="72" fontWeight="900"
               fill="rgba(255,255,255,0.95)" textAnchor="middle">{initials}</text>
           </>
         )}
 
-        {/* Fade foto → panel blanco */}
-        <rect x="12" y="200" width="276" height="82" fill={`url(#pfade-${jugador.id})`}/>
+        {/* Borde fino oscuro del marco foto */}
+        <rect x="14" y="14" width="208" height="276" rx="16" fill="none"
+          stroke="rgba(0,0,0,0.2)" strokeWidth="1.5"/>
 
-        {/* Rating + posición */}
-        <rect x="18" y="30" width="46" height="60" rx="6" fill="rgba(0,0,0,0.5)"/>
-        <text x="41" y="62" fontFamily="'Bebas Neue',sans-serif" fontSize="28" fill="#fff" textAnchor="middle">{media}</text>
-        <text x="41" y="80" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="800" fill={panini.stripeLight} textAnchor="middle" letterSpacing="0.5">{pos}</text>
+        {/* ── MEDIA + POSICIÓN — esquina sup izq sobre el marco ── */}
+        <rect x="18" y="18" width="44" height="56" rx="8" fill={bgDark} opacity="0.85"/>
+        <text x="40" y="47" fontFamily="'Bebas Neue',sans-serif" fontSize="24"
+          fill={accentColor} textAnchor="middle">{media}</text>
+        <text x="40" y="62" fontFamily="'Outfit',sans-serif" fontSize="8" fontWeight="800"
+          fill="rgba(255,255,255,0.8)" textAnchor="middle" letterSpacing="0.5">
+          {jugador.posicion?.substring(0,3).toUpperCase()||"JUG"}
+        </text>
 
-        {/* Bandera */}
-        <rect x="236" y="30" width="46" height="46" rx="6" fill="rgba(0,0,0,0.45)"/>
-        <text x="259" y="59" fontFamily="sans-serif" fontSize="26" textAnchor="middle">🇦🇷</text>
+        {/* ── BANDERA CIRCULAR derecha ── */}
+        <circle cx="262" cy="200" r="26" fill="white" filter={`url(#shadow-${jugador.id})`}/>
+        <circle cx="262" cy="200" r="24" fill="white"/>
+        <text x="262" y="208" fontFamily="sans-serif" fontSize="28" textAnchor="middle">🇦🇷</text>
 
-        {/* Panel blanco inferior */}
-        <rect x="12" y="280" width="276" height="128" fill="#f5f5f0"/>
-        <rect x="12" y="280" width="276" height="5" fill={panini.stripe}/>
+        {/* ── PANEL INFERIOR ── */}
+        <rect x="0" y="302" width="300" height="133" fill={bgDark} opacity="0.7"/>
 
-        {/* Nombre */}
-        <text x="150" y="306" fontFamily="'Outfit',sans-serif" fontSize="12" fontWeight="400"
-          fill="#444" textAnchor="middle" letterSpacing="2">{jugador.nombre.toUpperCase()}</text>
-        <text x="150" y="326" fontFamily="'Bebas Neue',sans-serif" fontSize="24" fontWeight="900"
-          fill="#111" textAnchor="middle" letterSpacing="1">{jugador.apellido?.toUpperCase()}</text>
-        <text x="150" y="340" fontFamily="'Outfit',sans-serif" fontSize="9" fontWeight="600"
-          fill={panini.stripe} textAnchor="middle" letterSpacing="1.5">{jugador.apodo}</text>
+        {/* Fila 1: Nombre Apellido */}
+        <rect x="10" y="308" width="280" height="34" rx="8" fill="rgba(255,255,255,0.12)"/>
+        <text x="150" y="330" fontFamily="'Outfit',sans-serif" fontSize="13" fontWeight="400"
+          fill="rgba(255,255,255,0.85)" textAnchor="middle" letterSpacing="1">
+          {jugador.nombre.toUpperCase()}
+        </text>
+        <text x="150" y="330" fontFamily="'Bebas Neue',sans-serif" fontSize="13"
+          fill="white" textAnchor="middle" letterSpacing="1">
+          {"  ".repeat(jugador.nombre.length+1)}{jugador.apellido?.toUpperCase()}
+        </text>
+        {/* Nombre fino + Apellido bold en la misma fila */}
+        <text x="150" y="330" fontFamily="'Outfit',sans-serif" fontSize="13"
+          fill="white" textAnchor="middle" letterSpacing="0.5">
+          <tspan fontWeight="300">{jugador.nombre.toUpperCase()} </tspan>
+          <tspan fontWeight="900">{jugador.apellido?.toUpperCase()}</tspan>
+        </text>
 
-        {/* Línea divisoria */}
-        <line x1="30" y1="347" x2="270" y2="347" stroke="#ddd" strokeWidth="1"/>
-
-        {/* Stats */}
+        {/* Fila 2: Stats principales */}
+        <rect x="10" y="347" width="280" height="28" rx="8" fill="rgba(255,255,255,0.08)"/>
         {[
           ["VEL",jugador.stats?.velocidad||0],["PAS",jugador.stats?.pase||0],["DEF",jugador.stats?.defensa||0],
           ["TIR",jugador.stats?.tiro||0],["TEC",jugador.stats?.tecnica||0],["RES",jugador.stats?.resistencia||0],
         ].map(([k,v],i)=>{
-          const x = 28 + i*42;
+          const x = 26 + i*47;
           return (
             <g key={k}>
-              <text x={x} y={364} fontFamily="'Bebas Neue',sans-serif" fontSize="15" fill="#111" textAnchor="middle">{v}</text>
-              <text x={x} y={374} fontFamily="'Outfit',sans-serif" fontSize="7" fontWeight="700"
-                fill={panini.stripe} textAnchor="middle" letterSpacing="0.5">{k}</text>
+              <text x={x} y={362} fontFamily="'Bebas Neue',sans-serif" fontSize="13"
+                fill="white" textAnchor="middle">{v}</text>
+              <text x={x} y={371} fontFamily="'Outfit',sans-serif" fontSize="6.5" fontWeight="700"
+                fill="rgba(255,255,255,0.6)" textAnchor="middle" letterSpacing="0.3">{k}</text>
             </g>
           );
         })}
 
-        {/* Número colección + badge */}
-        <text x="22" y="399" fontFamily="'Outfit',sans-serif" fontSize="7" fontWeight="600"
-          fill="#999" letterSpacing="0.5">#{String(jugador.id).padStart(3,"0")}</text>
-        <rect x="218" y="388" width="58" height="14" rx="3" fill={panini.stripe}/>
-        <text x="247" y="399" fontFamily="'Bebas Neue',sans-serif" fontSize="11"
-          fill="#fff" textAnchor="middle" letterSpacing="2">FULBITO</text>
+        {/* Fila 3: Club */}
+        <rect x="10" y="381" width="248" height="26" rx="8" fill="rgba(255,255,255,0.08)"/>
+        <text x="134" y="399" fontFamily="'Outfit',sans-serif" fontSize="11" fontWeight="600"
+          fill="rgba(255,255,255,0.85)" textAnchor="middle" letterSpacing="1.5">
+          AL-KOLIKO FC
+        </text>
+        {/* Pelota fútbol al final de fila club */}
+        <circle cx="267" cy="394" r="13" fill="rgba(255,255,255,0.15)"/>
+        <text x="267" y="399" fontFamily="sans-serif" fontSize="14" textAnchor="middle">⚽</text>
+
+        {/* Número colección */}
+        <text x="150" y="424" fontFamily="'Outfit',sans-serif" fontSize="7"
+          fill="rgba(255,255,255,0.3)" textAnchor="middle" letterSpacing="1">
+          #{String(jugador.id).padStart(3,"0")} · FULBITO DE LOS VIERNES 2025
+        </text>
+
       </g>
 
-      {/* Borde interior carta */}
-      <rect x="12" y="12" width="276" height="396" rx="10" fill="none" stroke={r.border} strokeWidth="1.5" opacity="0.6"/>
-
-      {/* Franja superior con nombre álbum */}
-      <path d="M22,12 L278,12 Q288,12 288,22 L288,34 L12,34 L12,22 Q12,12 22,12 Z" fill={panini.stripe} opacity="0.95"/>
-      <text x="150" y="27" fontFamily="'Bebas Neue',sans-serif" fontSize="12"
-        fill="#fff" textAnchor="middle" letterSpacing="3">AL-KOLIKO FC · 2025</text>
+      {/* Borde exterior carta */}
+      <rect x="0" y="0" width="300" height="435" rx="16" fill="none"
+        stroke="rgba(255,255,255,0.2)" strokeWidth="2"/>
     </svg>
   );
 }
@@ -1031,7 +1069,7 @@ function PageCards({ user, stats, onPlayerClick }) {
    APP ROOT
 ───────────────────────────────────────── */
 export default function App() {
-  const [users, setUsers] = useState(()=>S.get("fulbito-users", USERS_DEFAULT));
+  const [users, setUsers] = useState(()=>{ const saved=S.get("fulbito-users", USERS_DEFAULT); return (saved && saved[0]?.pass) ? saved : USERS_DEFAULT; });
   const [loggedUser, setLoggedUser] = useState(()=>{ const s=S.get("fulbito-session"); return s?users.find(u=>u.id===s.id)||null:null; });
   const [tab, setTab] = useState(0);
   const [showAdmin, setShowAdmin] = useState(false);
