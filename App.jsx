@@ -1053,14 +1053,6 @@ export default function App() {
     </>
   );
 
-  const PAGES = [
-    <PageInicio user={loggedUser} partido={partido} stats={users} onVotar={()=>setTab(0)} onPlayerClick={handlePlayerClick}/>,
-    <PageTemporada user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>,
-    <PageCincoIdeal stats={users} onPlayerClick={handlePlayerClick}/>,
-    <PageFeed user={loggedUser} stats={users} feed={feed} onFeedUpdate={setFeed}/>,
-    <PageCards user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>,
-  ];
-
   return (
     <>
       <style>{CSS}</style>
@@ -1070,7 +1062,11 @@ export default function App() {
         )}
         <Header user={loggedUser} onAdmin={()=>setShowAdmin(true)} onLogout={handleLogout} onProfile={()=>handlePlayerClick(loggedUser)}/>
         <div style={{padding:"14px 14px 82px",position:"relative",zIndex:1}}>
-          {PAGES[tab]}
+          {tab===0&&<PageInicio user={loggedUser} partido={partido} stats={users} onVotar={()=>setTab(0)} onPlayerClick={handlePlayerClick}/>}
+          {tab===1&&<PageTemporada user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>}
+          {tab===2&&<PageCincoIdeal stats={users} onPlayerClick={handlePlayerClick}/>}
+          {tab===3&&<PageFeed user={loggedUser} stats={users} feed={feed} onFeedUpdate={setFeed}/>}
+          {tab===4&&<PageCards user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>}
         </div>
         <NavBottom active={tab} onChange={i=>{setTab(i);setShowAdmin(false);}} pendiente={1}/>
       </div>
