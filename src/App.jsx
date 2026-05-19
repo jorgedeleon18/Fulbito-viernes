@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { supabase } from "./supabase";
 
 /* ─────────────────────────────────────────
    STORAGE
@@ -442,34 +443,74 @@ function AuthScreen({ onLogin, users, onRegister }) {
   const [newUser, setNewUser] = useState(null);
   const fileRef = useRef();
 
-  const handleLogin = () => {
-    setErr(""); setLoading(true);
-    setTimeout(()=>{
-      const found = users.find(u=>u.nombre.toLowerCase()===loginForm.nombre.toLowerCase().trim()&&u.pass===loginForm.pass.trim());
-      if(found) onLogin(found);
-      else { setErr("Usuario o contraseña incorrectos"); setLoading(false); }
-    },600);
-  };
+const handleLogin = async () => {
+  setErr(""); setLoading(true);
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: loginForm.nombre.includes("@") 
+      ? loginForm.nombre 
+      : loginForm.nombre.toLowerCase().trim() + "@fulbito.com",
+    password: loginForm.pass.trim()
+  });
+  if (error) {
+    setErr("Usuario o contraseña incorrectos");
+    setLoading(false);
+  } else {
+    const { data: jugador } = await supabase
+      .from("jugadores")
+      .select("*")
+      .eq("id", data.user.id)
+      .single();
+    if (jugador) onLogin(jugador);
+    else { setErr("No se encontró el jugador"); setLoading(false); }
+  }
+};
 
-  const handleRegister = () => {
-    setErr("");
-    if(!form.nombre||!form.apellido||!form.email||!form.pass) return setErr("Completá todos los campos obligatorios");
-    if(form.pass!==form.pass2) return setErr("Las contraseñas no coinciden");
-    if(users.find(u=>u.nombre.toLowerCase()===form.nombre.toLowerCase())) return setErr("Ya existe un usuario con ese nombre");
-    const nu = {
-      id: Date.now(), nombre:form.nombre, apellido:form.apellido,
-      apodo:form.apodo||`El ${form.nombre}`, email:form.email, pass:form.pass,
-      isAdmin: ADMINS.includes(form.nombre.toLowerCase()),
-      color:`#${Math.floor(Math.random()*16777215).toString(16).padStart(6,"0")}`,
-      posicion:form.posicion, pierna:form.pierna, ciudad:form.ciudad, nivel:form.nivel,
-      fechaNac:form.fechaNac, foto:null,
-      stats:{ velocidad:65, pase:65, defensa:65, tiro:65, tecnica:65, resistencia:65 },
-      pj:0, wins:0, mvps:0, goles:0, asist:0, puntosMes:0, puntosAnio:0,
-      rating:65, rareza:"Bronce", numero:Math.floor(Math.random()*99)+1,
-    };
-    setNewUser(nu);
-    setModo("onboarding");
-  };
+const handleRegister = async () => {
+  setErr("");
+  if(!form.nombre||!form.apellido||!form.email||!form.pass) return setErr("Completá todos los campos obligatorios");
+  if(form.pass!==form.pass2) return setErr("Las contraseñas no coinciden");
+  
+  setLoading(true);
+  const { data, error } = await supabase.auth.signUp({
+    email: form.email,
+    password: form.pass,
+    options: {
+      data: {
+        nombre: form.nombre,
+        apellido: form.apellido,
+      }
+    }
+  });
+
+  if (error) {
+    setErr(error.message);
+    setLoading(false);
+    return;
+  }
+
+  // Actualizar el resto de los datos del jugador
+  await supabase.from("jugadores").update({
+    apodo: form.apodo || `El ${form.nombre}`,
+    color: `#${Math.floor(Math.random()*16777215).toString(16).padStart(6,"0")}`,
+    posicion: form.posicion,
+    pierna: form.pierna,
+    ciudad: form.ciudad,
+    nivel: form.nivel,
+    fecha_nac: form.fechaNac,
+    numero: Math.floor(Math.random()*99)+1,
+    is_admin: ADMINS.includes(form.nombre.toLowerCase()),
+  }).eq("id", data.user.id);
+
+  const { data: jugador } = await supabase
+    .from("jugadores")
+    .select("*")
+    .eq("id", data.user.id)
+    .single();
+
+  setNewUser(jugador);
+  setLoading(false);
+  setModo("onboarding");
+};
 
   const handleFoto = (e) => {
     const file = e.target.files?.[0];
@@ -868,21 +909,55 @@ function PageCincoIdeal({ stats, onPlayerClick }) {
    PAGE: FEED
 ───────────────────────────────────────── */
 function PageFeed({ user, stats, feed, onFeedUpdate }) {
-  const [texto, setTexto] = useState("");
+const [texto, setTexto] = useState("");
   const [comentando, setComentando] = useState(null);
   const [comentTexto, setComentTexto] = useState("");
 
-  const publicar = () => {
+  const publicar = async () => {
     if(!texto.trim()) return;
-    onFeedUpdate([{ id:Date.now(), userId:user.id, texto:texto.trim(), likes:[], comentarios:[], hace:"Ahora mismo" }, ...feed]);
+    const { data, error } = await supabase
+      .from("posts")
+      .insert({ jugador_id: user.id, texto: texto.trim() })
+      .select(`*, jugador:jugadores(nombre, apodo, foto_url, rareza, color)`)
+      .single();
+    
+    if (!error && data) {
+      onFeedUpdate([{
+        ...data,
+        userId: data.jugador_id,
+        hace: "Ahora mismo",
+        likes: [],
+        comentarios: [],
+      }, ...feed]);
+    }
     setTexto("");
   };
 
-  const toggleLike = (id) => onFeedUpdate(feed.map(p=>{ if(p.id!==id) return p; const liked=p.likes.includes(user.id); return {...p,likes:liked?p.likes.filter(x=>x!==user.id):[...p.likes,user.id]}; }));
+  const toggleLike = async (id) => {
+    const post = feed.find(p => p.id === id);
+    const liked = post.likes.includes(user.id);
+    if (liked) {
+      await supabase.from("likes").delete().eq("post_id", id).eq("jugador_id", user.id);
+      onFeedUpdate(feed.map(p => p.id !== id ? p : {...p, likes: p.likes.filter(x => x !== user.id)}));
+    } else {
+      await supabase.from("likes").insert({ post_id: id, jugador_id: user.id });
+      onFeedUpdate(feed.map(p => p.id !== id ? p : {...p, likes: [...p.likes, user.id]}));
+    }
+  };
 
-  const comentar = (id) => {
+  const comentar = async (id) => {
     if(!comentTexto.trim()) return;
-    onFeedUpdate(feed.map(p=>p.id!==id?p:{...p,comentarios:[...p.comentarios,{userId:user.id,texto:comentTexto.trim()}]}));
+    const { data, error } = await supabase
+      .from("comentarios")
+      .insert({ post_id: id, jugador_id: user.id, texto: comentTexto.trim() })
+      .select(`*, jugador:jugadores(nombre, apodo, color)`)
+      .single();
+    if (!error && data) {
+      onFeedUpdate(feed.map(p => p.id !== id ? p : {
+        ...p,
+        comentarios: [...p.comentarios, { userId: data.jugador_id, texto: data.texto }]
+      }));
+    }
     setComentTexto(""); setComentando(null);
   };
 
@@ -976,18 +1051,71 @@ function PageCards({ user, stats, onPlayerClick }) {
    APP ROOT
 ───────────────────────────────────────── */
 export default function App() {
-  const [users, setUsers] = useState(()=>{ const saved=S.get("fulbito-users", USERS_DEFAULT); return (saved && saved[0]?.pass) ? saved : USERS_DEFAULT; });
+  const [users, setUsers] = useState([]);
+
+useEffect(() => {
+  supabase.from("jugadores").select("*").then(({ data }) => {
+    if (data && data.length > 0) {
+      const mapped = data.map(j => ({
+        ...j,
+        isAdmin: j.is_admin,
+        puntosMes: j.puntos_mes,
+        puntosAnio: j.puntos_anio,
+        fechaNac: j.fecha_nac,
+        foto: j.foto_url,
+        stats: {
+          velocidad: j.velocidad,
+          pase: j.pase,
+          defensa: j.defensa,
+          tiro: j.tiro,
+          tecnica: j.tecnica,
+          resistencia: j.resistencia,
+        }
+      }));
+      setUsers(mapped);
+    }
+  });
+}, []);
   const [loggedUser, setLoggedUser] = useState(()=>{ const s=S.get("fulbito-session"); return s?users.find(u=>u.id===s.id)||null:null; });
   const [tab, setTab] = useState(0);
   const [showAdmin, setShowAdmin] = useState(false);
-  const [partido] = useState(PARTIDO_DEFAULT);
-  const [feed, setFeed] = useState(()=>S.get("fulbito-feed", FEED_DEFAULT));
+  const [partido, setPartido] = useState(PARTIDO_DEFAULT);
+
+useEffect(() => {
+  supabase.from("partidos").select("*").order("created_at", { ascending: false }).limit(1).then(({ data }) => {
+    if (data && data.length > 0) {
+      const p = data[0];
+      setPartido({
+        ...p,
+        equipoA: p.equipo_a,
+        equipoB: p.equipo_b,
+      });
+    }
+  });
+}, []);
+  const [feed, setFeed] = useState([]);
+
+useEffect(() => {
+  supabase
+    .from("posts")
+    .select(`*, jugador:jugadores(nombre, apodo, foto_url, rareza, color)`)
+    .order("created_at", { ascending: false })
+    .then(({ data }) => {
+      if (data) {
+        const mapped = data.map(p => ({
+          ...p,
+          userId: p.jugador_id,
+          hace: new Date(p.created_at).toLocaleDateString("es-AR"),
+          likes: [],
+          comentarios: [],
+        }));
+        setFeed(mapped);
+      }
+    });
+}, []);
+
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  // Sync users to storage
-  useEffect(()=>{ S.set("fulbito-users", users); },[users]);
-  useEffect(()=>{ S.set("fulbito-feed", feed); },[feed]);
-  useEffect(()=>{ if(loggedUser) S.set("fulbito-session",{id:loggedUser.id}); else S.removeItem?.("fulbito-session"); },[loggedUser]);
 
   const handleLogin = (u) => { setLoggedUser(u); setTab(0); };
   const handleLogout = () => { setLoggedUser(null); localStorage.removeItem("fulbito-session"); };

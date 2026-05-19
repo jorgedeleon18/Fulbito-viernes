@@ -351,3 +351,106 @@ Los datos se guardan en **localStorage** de cada navegador/dispositivo por separ
 ---
 
 *Hecho con ❤️ y ⚽ para el grupo del viernes — Al-Koliko FC 2025*
+
+🗄️ Fase 2 — Migración a Supabase
+Qué se hizo
+Se migró el sistema de persistencia de localStorage a Supabase (PostgreSQL en la nube), para que todos los jugadores compartan los mismos datos en tiempo real desde cualquier dispositivo.
+Credenciales del proyecto Supabase
+CampoValorOrganizaciónFulbito ViernesProyectofulbito-viernesProject URLhttps://lncnpzhbxgxkbpiahlwk.supabase.coRegiónSouth America (São Paulo) 🇧🇷PlanFree
+
+⚠️ La anon key y la service_role key están en el archivo .env que no se sube a GitHub. Si no tenés el .env, pedíselo a Nico.
+
+
+Archivos nuevos
+.env — en la raíz del proyecto (no está en GitHub, hay que crearlo manualmente):
+VITE_SUPABASE_URL=https://lncnpzhbxgxkbpiahlwk.supabase.co
+VITE_SUPABASE_ANON_KEY=tu-anon-key-aqui
+src/supabase.js — cliente de conexión a Supabase:
+jsimport { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+export const supabase = createClient(supabaseUrl, supabaseKey)
+
+Tablas creadas en Supabase
+TablaDescripciónjugadoresUsuarios del sistema con todos sus statspartidosPartidos del viernes con equipos y confirmadosvotosDistribución de monedas por partidopostsPublicaciones del feed sociallikesLikes de cada postcomentariosComentarios de cada post
+
+Cómo arrancar el proyecto desde cero (Jorge leé esto)
+1. Clonar e instalar:
+bashgit clone https://github.com/jorgedeleon18/Fulbito-viernes.git
+cd Fulbito-viernes
+npm install
+2. Crear el archivo .env en la raíz con las credenciales de Supabase (pedíselas a Nico).
+3. Correr la app:
+bashnpm run dev
+
+Estado actual de la migración
+FuncionalidadEstadoSupabase instalado y conectado✅ ListoTablas creadas✅ ListoRLS y policies de seguridad✅ ListoTrigger de registro automático✅ ListoLogin migrado a Supabase Auth✅ ListoRegistro migrado🔄 En progresoFeed compartido en tiempo real⏳ PendienteSistema de votación⏳ PendientePerfiles y figuritas⏳ PendienteMigración de datos existentes⏳ Pendiente
+
+Fase 2 iniciada el 18/05/2025 — Al-Koliko FC 2025 ⚽
+
+
+Jorge, Fase 2 — Estado actual y lo que falta
+✅ Lo que ya está hecho:
+
+Supabase instalado y conectado al proyecto React
+6 tablas creadas (jugadores, partidos, votos, posts, likes, comentarios)
+Autenticación, trigger de registro y policies de seguridad
+Login y registro migrados a Supabase Auth
+Jugadores leyendo desde Supabase
+Partido leyendo desde Supabase
+Feed leyendo desde Supabase
+Publicar posts guarda en Supabase
+Likes guardan en Supabase
+Comentarios guardan en Supabase
+Los 11 jugadores creados en Supabase Auth con sus stats cargados
+
+
+⏳ Lo que falta hacer:
+1. Deploy en Netlify (urgente — sin esto en producción no funciona)
+
+Entrá a netlify.com → sitio fulbito-viernes → Site settings → Environment variables
+Agregá estas dos variables:
+
+VITE_SUPABASE_URL=https://lncnpzhbxgxkbpiahlwk.supabase.co
+VITE_SUPABASE_ANON_KEY=pedísela a Nico
+
+Luego desde la terminal:
+
+bashgit add .
+git commit -m "feat: migración Supabase fase 2"
+git push origin main
+2. Sistema de votación (feature nueva — construir desde cero)
+La lógica de votos no estaba implementada en el App.jsx, solo había un botón placeholder. Hay que construir:
+
+Pantalla de votación donde cada jugador reparte sus 10 monedas
+Guardar votos en la tabla votos de Supabase
+Calcular el Top 5 agrupando votos por jugador
+Calcular puntos de cada votante según cuántos del Top 5 acertó
+Mostrar resultados en la pantalla 5 Ideal
+
+Decile a tu Claude esto exactamente:
+
+"Tengo una app React llamada Fulbito Viernes conectada a Supabase. Necesito construir el sistema de votación desde cero. Cada jugador tiene 10 monedas para repartir entre los jugadores del partido (no puede votarse a sí mismo). Los votos se guardan en la tabla votos con campos: partido_id, votante_id, votado_id, monedas. Al cerrar la votación se forma el Top 5 con los más votados y cada votante suma puntos según cuántos del Top 5 acertó (1°=5pts, 2°=4pts, 3°=3pts, 4°=2pts, 5°=1pt). Necesito la pantalla de votación y la lógica completa."
+
+3. Subida de fotos de perfil a Supabase Storage
+Actualmente las fotos se guardan en base64 en el estado local. Hay que:
+
+Crear un bucket llamado avatares en Supabase Storage
+Reemplazar el handleFoto del PlayerModal para subir al bucket
+Guardar la URL pública en jugadores.foto_url
+
+Decile a tu Claude:
+
+"En mi app React con Supabase necesito migrar la subida de fotos de perfil a Supabase Storage. El bucket se llama 'avatares'. La función actual usa FileReader para convertir a base64. Necesito reemplazarla para que suba el archivo al bucket y guarde la URL pública en la tabla jugadores columna foto_url."
+
+
+Credenciales Supabase:
+
+Project URL: https://lncnpzhbxgxkbpiahlwk.supabase.co
+La anon key pedísela a Nico (está en el archivo .env del proyecto)
+Dashboard: supabase.com → organización Fulbito Viernes → proyecto fulbito-viernes
+
+
+Fase 2 — Al-Koliko FC 2025 ⚽
