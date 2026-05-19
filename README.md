@@ -449,7 +449,7 @@ Decile a tu Claude:
 Credenciales Supabase:
 
 Project URL: https://lncnpzhbxgxkbpiahlwk.supabase.co
-La anon key pedísela a Nico (está en el archivo .env del proyecto)
+La anon key VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuY25wemhieGd4a2JwaWFobHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNDY2NDcsImV4cCI6MjA5NDcyMjY0N30.p9TdIqc2FT2zqvp8Z9CW3GxP6Pcj8RwBPK9Ib8TEDuc (está en el archivo .env del proyecto)
 Dashboard: supabase.com → organización Fulbito Viernes → proyecto fulbito-viernes
 
 

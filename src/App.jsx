@@ -64,6 +64,26 @@ const RAREZA_CONFIG = {
 /* ─────────────────────────────────────────
    POSICIONES
 ───────────────────────────────────────── */
+
+/* ─────────────────────────────────────────
+   EQUIPOS FAVORITOS
+───────────────────────────────────────── */
+const EQUIPOS_ARG = [
+  "River Plate","Boca Juniors","Racing Club","Independiente","San Lorenzo",
+  "Huracán","Vélez Sársfield","Lanús","Banfield","Arsenal Sarandí",
+  "Talleres (Córdoba)","Belgrano","Estudiantes (LP)","Gimnasia (LP)","Platense",
+  "Tigre","San Martín (SJ)","Riestra","Deportivo Riestra","Godoy Cruz",
+  "Unión (SF)","Colón (SF)","Central Córdoba","Sarmiento","Instituto"
+];
+
+const LIGAS_EU = {
+  "Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿": ["Manchester City","Arsenal","Liverpool","Chelsea","Manchester United","Tottenham","Newcastle","Aston Villa","Brighton","West Ham"],
+  "La Liga 🇪🇸": ["Real Madrid","Barcelona","Atletico Madrid","Sevilla","Real Sociedad","Real Betis","Valencia","Villarreal","Athletic Bilbao","Osasuna"],
+  "Serie A 🇮🇹": ["Inter Milan","AC Milan","Juventus","Napoli","AS Roma","Lazio","Fiorentina","Atalanta","Bologna","Torino"],
+  "Bundesliga 🇩🇪": ["Bayern Munich","Borussia Dortmund","RB Leipzig","Bayer Leverkusen","Eintracht Frankfurt","Wolfsburg","Freiburg","Union Berlin","Hoffenheim","Stuttgart"],
+  "Ligue 1 🇫🇷": ["PSG","Marseille","Lyon","Monaco","Lille","Nice","Rennes","Lens","Strasbourg","Montpellier"],
+};
+
 const POSICIONES = ["Arquero","Defensor","Lateral","Mediocampista","Volante","Extremo","Delantero"];
 const NIVELES = ["Principiante","Intermedio","Avanzado","Semiprofesional"];
 const PIERNAS = ["Derecha","Izquierda","Ambas"];
@@ -436,7 +456,7 @@ function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
 ───────────────────────────────────────── */
 function AuthScreen({ onLogin, users, onRegister }) {
   const [modo, setModo] = useState("bienvenida"); // bienvenida | login | registro | onboarding
-  const [form, setForm] = useState({ nombre:"", apellido:"", apodo:"", email:"", pass:"", pass2:"", fechaNac:"", posicion:"Mediocampista", pierna:"Derecha", ciudad:"", nivel:"Intermedio" });
+  const [form, setForm] = useState({ nombre:"", apellido:"", apodo:"", email:"", pass:"", pass2:"", fechaNac:"", posicion:"Mediocampista", pierna:"Derecha", ciudad:"", nivel:"Intermedio", equipoArg:"", ligaEu:"", equipoEu:"" });
   const [loginForm, setLoginForm] = useState({ nombre:"", pass:"" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
@@ -460,8 +480,32 @@ const handleLogin = async () => {
       .select("*")
       .eq("id", data.user.id)
       .single();
-    if (jugador) onLogin(jugador);
-    else { setErr("No se encontró el jugador"); setLoading(false); }
+    if (jugador) {
+      const mapped = {
+        ...jugador,
+        isAdmin: jugador.is_admin,
+        puntosMes: jugador.puntos_mes,
+        puntosAnio: jugador.puntos_anio,
+        fechaNac: jugador.fecha_nac,
+        foto: jugador.foto_url,
+        equipoArg: jugador.equipo_arg,
+        equipoEu: jugador.equipo_eu,
+        ligaEu: jugador.liga_eu,
+        stats: {
+          velocidad: jugador.velocidad,
+          pase: jugador.pase,
+          defensa: jugador.defensa,
+          tiro: jugador.tiro,
+          tecnica: jugador.tecnica,
+          resistencia: jugador.resistencia,
+        }
+      };
+      setLoading(false);
+      onLogin(mapped);
+    } else {
+      setErr("No se encontró el jugador");
+      setLoading(false);
+    }
   }
 };
 
@@ -499,6 +543,9 @@ const handleRegister = async () => {
     fecha_nac: form.fechaNac,
     numero: Math.floor(Math.random()*99)+1,
     is_admin: ADMINS.includes(form.nombre.toLowerCase()),
+    equipo_arg: form.equipoArg || null,
+    equipo_eu: form.equipoEu || null,
+    liga_eu: form.ligaEu || null,
   }).eq("id", data.user.id);
 
   const { data: jugador } = await supabase
@@ -507,7 +554,26 @@ const handleRegister = async () => {
     .eq("id", data.user.id)
     .single();
 
-  setNewUser(jugador);
+  const mappedNew = jugador ? {
+    ...jugador,
+    isAdmin: jugador.is_admin,
+    puntosMes: jugador.puntos_mes || 0,
+    puntosAnio: jugador.puntos_anio || 0,
+    fechaNac: jugador.fecha_nac,
+    foto: jugador.foto_url,
+    equipoArg: jugador.equipo_arg,
+    equipoEu: jugador.equipo_eu,
+    ligaEu: jugador.liga_eu,
+    stats: {
+      velocidad: jugador.velocidad || 65,
+      pase: jugador.pase || 65,
+      defensa: jugador.defensa || 65,
+      tiro: jugador.tiro || 65,
+      tecnica: jugador.tecnica || 65,
+      resistencia: jugador.resistencia || 65,
+    }
+  } : null;
+  setNewUser(mappedNew);
   setLoading(false);
   setModo("onboarding");
 };
@@ -530,7 +596,7 @@ const handleRegister = async () => {
     <div style={{minHeight:"100dvh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,position:"relative",overflow:"hidden"}}>
       <div className="rotate-slow" style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",pointerEvents:"none",zIndex:0}}><StarballSVG size={520} opacity={0.05}/></div>
       <div className="fade-up" style={{textAlign:"center",marginBottom:48,position:"relative",zIndex:1}}>
-        <div style={{width:90,height:90,borderRadius:24,margin:"0 auto 20px",background:"linear-gradient(135deg,#1440b8,#0a1f6b)",border:"1px solid rgba(30,80,212,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:44,boxShadow:"0 0 50px rgba(30,80,212,0.35),inset 0 1px 0 rgba(255,255,255,0.1)"}}>⚽</div>
+        <img src="/FL.png" alt="FL" style={{width:90,height:90,borderRadius:24,margin:"0 auto 20px",objectFit:"cover",boxShadow:"0 0 50px rgba(30,80,212,0.35)"}}/>
         <div style={{fontFamily:"'Outfit'",fontWeight:900,fontSize:34,color:"#fff",lineHeight:1.1,marginBottom:6}}>El Fulbito</div>
         <div className="gold-text" style={{fontFamily:"'Outfit'",fontWeight:600,fontSize:16,marginBottom:8}}>de los Viernes</div>
         <div style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.3)",letterSpacing:2}}>AL-KOLIKO FC · TEMPORADA 2025</div>
@@ -617,6 +683,35 @@ const handleRegister = async () => {
               </select>
             </div>
           </div>
+
+          {/* Equipo argentino */}
+          <div>
+            <Lbl>⭐ Equipo argentino favorito</Lbl>
+            <select className="ucl-input" value={form.equipoArg||""} onChange={e=>setForm(p=>({...p,equipoArg:e.target.value}))}>
+              <option value="">Seleccioná tu equipo...</option>
+              {EQUIPOS_ARG.map(e=><option key={e} value={e}>{e}</option>)}
+            </select>
+          </div>
+
+          {/* Liga europea */}
+          <div>
+            <Lbl>🌍 Liga europea</Lbl>
+            <select className="ucl-input" value={form.ligaEu||""} onChange={e=>setForm(p=>({...p,ligaEu:e.target.value,equipoEu:""}))}>
+              <option value="">Seleccioná una liga...</option>
+              {Object.keys(LIGAS_EU).map(l=><option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+
+          {/* Equipo europeo */}
+          {form.ligaEu&&(
+            <div>
+              <Lbl>🏆 Equipo europeo favorito</Lbl>
+              <select className="ucl-input" value={form.equipoEu||""} onChange={e=>setForm(p=>({...p,equipoEu:e.target.value}))}>
+                <option value="">Seleccioná tu equipo...</option>
+                {(LIGAS_EU[form.ligaEu]||[]).map(e=><option key={e} value={e}>{e}</option>)}
+              </select>
+            </div>
+          )}
         </div>
 
         {err&&<div className="pop" style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#fca5a5",margin:"14px 0",textAlign:"center"}}>⚠️ {err}</div>}
@@ -674,29 +769,31 @@ const handleRegister = async () => {
 function Header({ user, onAdmin, onLogout, onProfile }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return(
-    <div style={{height:56,position:"sticky",top:0,zIndex:300,background:"rgba(6,11,24,0.92)",borderBottom:"1px solid rgba(255,255,255,0.07)",backdropFilter:"blur(24px)",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 16px"}}>
-      <div style={{display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,#1440b8,#0a1f6b)",border:"1px solid rgba(30,80,212,0.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,boxShadow:"0 0 16px rgba(30,80,212,0.4)"}}>⚽</div>
+    <div style={{height:60,position:"sticky",top:0,zIndex:300,background:"rgba(6,11,24,0.95)",borderBottom:"1px solid rgba(255,255,255,0.07)",backdropFilter:"blur(24px)",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 14px"}}>
+      {/* Logo FL + nombre */}
+      <div style={{display:"flex",alignItems:"center",gap:9}}>
+        <img src="/FL.png" alt="FL" style={{width:38,height:38,borderRadius:10,objectFit:"cover"}}/>
         <div>
-          <div style={{fontFamily:"'Outfit'",fontWeight:800,fontSize:16,color:"#fff",lineHeight:1.1}}>El Fulbito</div>
+          <div style={{fontFamily:"'Outfit'",fontWeight:900,fontSize:15,color:"#fff",lineHeight:1.1}}>El Fulbito</div>
           <div style={{fontFamily:"'Outfit'",fontWeight:500,fontSize:9,letterSpacing:1,color:"#c9a84c"}}>de los Viernes</div>
         </div>
       </div>
-      <div style={{display:"flex",alignItems:"center",gap:8,position:"relative"}}>
-        {user.isAdmin&&<button onClick={onAdmin} style={{padding:"5px 11px",borderRadius:8,border:"1px solid rgba(201,168,76,0.25)",background:"rgba(201,168,76,0.08)",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:11,color:"#c9a84c"}}>⚙️ Admin</button>}
-        <button onClick={()=>setMenuOpen(p=>!p)} style={{display:"flex",alignItems:"center",gap:7,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:99,padding:"5px 12px 5px 5px",cursor:"pointer"}}>
-          <Av j={user} size={26}/><span style={{fontFamily:"'Outfit'",fontWeight:600,fontSize:13,color:"#fff"}}>{user.nombre}</span>
-          <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",marginLeft:2}}>▾</span>
+      {/* Avatar usuario con menú */}
+      <div style={{position:"relative"}}>
+        <button onClick={()=>setMenuOpen(p=>!p)} style={{display:"flex",alignItems:"center",gap:7,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:99,padding:"5px 10px 5px 5px",cursor:"pointer"}}>
+          <Av j={user} size={30} border/>
+          <span style={{fontFamily:"'Outfit'",fontWeight:600,fontSize:13,color:"#fff"}}>{user.nombre}</span>
+          <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",marginLeft:1}}>▾</span>
         </button>
         {menuOpen&&(
-          <div className="slide-down" style={{position:"absolute",top:48,right:0,background:"#0c1428",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,overflow:"hidden",minWidth:170,boxShadow:"0 8px 32px rgba(0,0,0,0.6)",zIndex:400}}>
-            <button onClick={()=>{onProfile();setMenuOpen(false);}} style={{width:"100%",padding:"12px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:13,color:"rgba(255,255,255,0.85)",textAlign:"left",display:"flex",alignItems:"center",gap:10,borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+          <div className="slide-down" style={{position:"absolute",top:50,right:0,background:"#0c1428",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,overflow:"hidden",minWidth:180,boxShadow:"0 8px 32px rgba(0,0,0,0.7)",zIndex:400}}>
+            <button onClick={()=>{onProfile();setMenuOpen(false);}} style={{width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:13,color:"rgba(255,255,255,0.85)",textAlign:"left",display:"flex",alignItems:"center",gap:10,borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
               👤 Mi perfil
             </button>
-            {user.isAdmin&&<button onClick={()=>{onAdmin();setMenuOpen(false);}} style={{width:"100%",padding:"12px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:13,color:"rgba(255,255,255,0.85)",textAlign:"left",display:"flex",alignItems:"center",gap:10,borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+            {user.isAdmin&&<button onClick={()=>{onAdmin();setMenuOpen(false);}} style={{width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:13,color:"rgba(255,255,255,0.85)",textAlign:"left",display:"flex",alignItems:"center",gap:10,borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
               ⚙️ Panel admin
             </button>}
-            <button onClick={()=>{onLogout();setMenuOpen(false);}} style={{width:"100%",padding:"12px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:13,color:"#f87171",textAlign:"left",display:"flex",alignItems:"center",gap:10}}>
+            <button onClick={()=>{onLogout();setMenuOpen(false);}} style={{width:"100%",padding:"13px 16px",background:"none",border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:13,color:"#f87171",textAlign:"left",display:"flex",alignItems:"center",gap:10}}>
               🚪 Cerrar sesión
             </button>
           </div>
@@ -709,15 +806,17 @@ function Header({ user, onAdmin, onLogout, onProfile }) {
 /* ─────────────────────────────────────────
    NAV
 ───────────────────────────────────────── */
-const NAV=[{icon:"🏠",label:"Inicio"},{icon:"📊",label:"Temporada"},{icon:"⭐",label:"5 Ideal"},{icon:"📱",label:"Feed"},{icon:"🎴",label:"Cards"}];
+const NAV=[{icon:"🏠",label:"Inicio"},{icon:"📊",label:"Temporada"},{icon:"⭐",label:"5 Ideal"},{icon:"📱",label:"Feed"},{icon:"🎴",label:"Cards",adminOnly:true}];
 
-function NavBottom({ active, onChange, pendiente }) {
+function NavBottom({ active, onChange, pendiente, isAdmin }) {
+  const visibleNav = NAV.filter(n => !n.adminOnly || isAdmin);
   return(
     <div style={{height:62,position:"fixed",bottom:0,left:0,right:0,zIndex:300,background:"rgba(5,9,20,0.97)",borderTop:"1px solid rgba(255,255,255,0.07)",backdropFilter:"blur(24px)",display:"flex",maxWidth:520,margin:"0 auto"}}>
-      {NAV.map((n,i)=>{
-        const on=active===i;
+      {visibleNav.map((n,i)=>{
+        const realIdx = NAV.indexOf(n);
+        const on=active===realIdx;
         return(
-          <button key={i} onClick={()=>onChange(i)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,border:"none",background:"none",cursor:"pointer",fontFamily:"'Outfit'",fontSize:9,fontWeight:600,letterSpacing:0.3,color:on?"#2563eb":"rgba(255,255,255,0.26)",transition:"all 0.18s",borderTop:on?"2px solid #2563eb":"2px solid transparent",paddingTop:4,position:"relative"}}>
+          <button key={i} onClick={()=>onChange(realIdx)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,border:"none",background:"none",cursor:"pointer",fontFamily:"'Outfit'",fontSize:9,fontWeight:600,letterSpacing:0.3,color:on?"#2563eb":"rgba(255,255,255,0.26)",transition:"all 0.18s",borderTop:on?"2px solid #2563eb":"2px solid transparent",paddingTop:4,position:"relative"}}>
             <span style={{fontSize:19,lineHeight:1,transform:on?"scale(1.18)":"scale(1)",filter:on?"drop-shadow(0 0 8px rgba(30,80,212,0.65))":"none",transition:"all 0.18s"}}>{n.icon}</span>
             {n.label}
             {i===0&&pendiente>0&&!on&&<span className="pulse-dot" style={{position:"absolute",top:6,right:"calc(50% - 14px)",width:7,height:7,borderRadius:"50%",background:"#ef4444",border:"1.5px solid #060b18"}}/>}
@@ -731,6 +830,26 @@ function NavBottom({ active, onChange, pendiente }) {
 /* ─────────────────────────────────────────
    PAGE: INICIO
 ───────────────────────────────────────── */
+function EquipoCard({ titulo, equipo, liga, emoji }) {
+  if(!equipo) return (
+    <div style={{background:"rgba(255,255,255,0.03)",border:"1px dashed rgba(255,255,255,0.1)",borderRadius:14,padding:14,flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6,minHeight:110}}>
+      <span style={{fontSize:22}}>{emoji}</span>
+      <div style={{fontSize:11,color:"rgba(255,255,255,0.25)",textAlign:"center"}}>{titulo}<br/>sin asignar</div>
+    </div>
+  );
+  return (
+    <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:14,flex:1,minHeight:110}}>
+      <div style={{fontSize:9,fontWeight:700,letterSpacing:2,color:"rgba(255,255,255,0.3)",marginBottom:6}}>{titulo.toUpperCase()}</div>
+      <div style={{fontWeight:800,fontSize:14,color:"#fff",marginBottom:2,lineHeight:1.2}}>{equipo}</div>
+      {liga&&<div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginBottom:8}}>{liga}</div>}
+      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+        <span style={{fontSize:9,padding:"2px 7px",borderRadius:99,background:"rgba(30,80,212,0.15)",color:"#7cb9ff",border:"1px solid rgba(30,80,212,0.2)"}}>Próx: TBD</span>
+        <span style={{fontSize:9,padding:"2px 7px",borderRadius:99,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.08)"}}>Tabla: TBD</span>
+      </div>
+    </div>
+  );
+}
+
 function PageInicio({ user, partido, stats, onVotar, onPlayerClick }) {
   const [confirmado, setConfirmado] = useState(partido?.confirmados?.includes(user.id));
   const miStats = stats.find(s=>s.id===user.id);
@@ -784,6 +903,15 @@ function PageInicio({ user, partido, stats, onVotar, onPlayerClick }) {
         ))}
       </div>
 
+      {/* Equipos favoritos */}
+      <div style={{marginBottom:10}}>
+        <Lbl style={{marginBottom:8}}>Mis equipos</Lbl>
+        <div style={{display:"flex",gap:8}}>
+          <EquipoCard titulo="Argentina 🇦🇷" equipo={miStats?.equipoArg} emoji="⭐"/>
+          <EquipoCard titulo="Europa 🌍" equipo={miStats?.equipoEu} liga={miStats?.ligaEu} emoji="🏆"/>
+        </div>
+      </div>
+
       {/* Invitación */}
       <Card style={{padding:14}}>
         <Lbl style={{marginBottom:10}}>Invitaciones</Lbl>
@@ -805,50 +933,92 @@ function PageInicio({ user, partido, stats, onVotar, onPlayerClick }) {
 ───────────────────────────────────────── */
 function PageTemporada({ user, stats, onPlayerClick }) {
   const [vista, setVista] = useState("mensual");
+  const [tabla, setTabla] = useState("jugadores");
   const sorted = [...stats].sort((a,b)=>vista==="mensual"?b.puntosMes-a.puntosMes:b.puntosAnio-a.puntosAnio);
+
+  // Tabla de equipos del fulbito (simulada por ahora)
+  const equiposFulbito = [
+    { nombre:"Los Pibes FC", pj:8, pg:5, pe:1, pp:2, pts:16 },
+    { nombre:"Al-Koliko FC", pj:8, pg:4, pe:2, pp:2, pts:14 },
+    { nombre:"Los Cracks", pj:8, pg:3, pe:3, pp:2, pts:12 },
+    { nombre:"El Equipo", pj:8, pg:2, pe:2, pp:4, pts:8 },
+  ].sort((a,b)=>b.pts-a.pts);
 
   return(
     <div className="fade-up">
-      <div style={{display:"flex",background:"rgba(255,255,255,0.04)",borderRadius:10,padding:3,marginBottom:12,border:"1px solid rgba(255,255,255,0.07)"}}>
-        {[["mensual","Mensual"],["anual","Anual"]].map(([v,l])=>(
-          <button key={v} onClick={()=>setVista(v)} style={{flex:1,padding:"8px 0",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:12,background:vista===v?"linear-gradient(135deg,#1440b8,#2563eb)":"none",color:vista===v?"#fff":"rgba(255,255,255,0.3)",transition:"all 0.2s"}}>{l}</button>
+      {/* Tabs principales */}
+      <div style={{display:"flex",background:"rgba(255,255,255,0.04)",borderRadius:10,padding:3,marginBottom:10,border:"1px solid rgba(255,255,255,0.07)"}}>
+        {[["jugadores","👤 Jugadores"],["equipos","🛡️ Equipos"]].map(([v,l])=>(
+          <button key={v} onClick={()=>setTabla(v)} style={{flex:1,padding:"8px 0",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:12,background:tabla===v?"linear-gradient(135deg,#1440b8,#2563eb)":"none",color:tabla===v?"#fff":"rgba(255,255,255,0.3)",transition:"all 0.2s"}}>{l}</button>
         ))}
       </div>
 
-      <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.3)",marginBottom:8}}>Mayo 2025 — Tabla de puntos</div>
+      {tabla==="jugadores" && (<>
+        {/* Tabs semanal/mensual/anual */}
+        <div style={{display:"flex",gap:6,marginBottom:10}}>
+          {[["semanal","Semana"],["mensual","Mes"],["anual","Año"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setVista(v)} style={{padding:"5px 12px",borderRadius:99,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:11,background:vista===v?"rgba(30,80,212,0.3)":"rgba(255,255,255,0.05)",color:vista===v?"#7cb9ff":"rgba(255,255,255,0.35)",border:vista===v?"1px solid rgba(30,80,212,0.4)":"1px solid rgba(255,255,255,0.08)",transition:"all 0.2s"}}>{l}</button>
+          ))}
+        </div>
 
-      {/* Header */}
-      <div style={{display:"flex",alignItems:"center",padding:"4px 14px",marginBottom:4}}>
-        <span style={{width:22,fontSize:10,color:"rgba(255,255,255,0.25)",fontWeight:700}}>#</span>
-        <span style={{flex:1,fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1,marginLeft:42}}>JUGADOR</span>
-        {["PJ","PTS","TOP1"].map(k=><span key={k} style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1,width:36,textAlign:"center"}}>{k}</span>)}
-      </div>
+        <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.3)",marginBottom:8}}>
+          {vista==="semanal"?"Esta semana":vista==="mensual"?"Mayo 2025":"Temporada 2025"} — Tabla de puntos
+        </div>
 
-      {sorted.map((j,i)=>(
-        <div key={j.id} className="card-tap" onClick={()=>onPlayerClick(j)} style={{
-          display:"flex",alignItems:"center",padding:"10px 14px",
-          background:j.id===user.id?"rgba(30,80,212,0.08)":"rgba(255,255,255,0.02)",
-          border:j.id===user.id?"1px solid rgba(30,80,212,0.18)":"1px solid rgba(255,255,255,0.06)",
-          borderRadius:12,marginBottom:6,cursor:"pointer",transition:"all 0.2s",
-        }}>
-          <span style={{fontFamily:"'Bebas Neue'",fontSize:16,color:i<3?"#c9a84c":"rgba(255,255,255,0.2)",width:22,textAlign:"center"}}>
-            {i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}
-          </span>
-          <Av j={j} size={30}/>
-          <div style={{flex:1,marginLeft:10}}>
-            <div style={{fontWeight:700,fontSize:14,display:"flex",alignItems:"center",gap:6}}>
-              {j.nombre}
-              {j.id===user.id&&<span style={{fontSize:9,padding:"1px 6px",borderRadius:4,background:"rgba(30,80,212,0.15)",color:"#7cb9ff",border:"1px solid rgba(30,80,212,0.25)",fontWeight:600}}>vos</span>}
+        {/* Header tabla */}
+        <div style={{display:"flex",alignItems:"center",padding:"4px 14px",marginBottom:4}}>
+          <span style={{width:22,fontSize:10,color:"rgba(255,255,255,0.25)",fontWeight:700}}>#</span>
+          <span style={{flex:1,fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1,marginLeft:42}}>JUGADOR</span>
+          {["PJ","PTS","MVPs"].map(k=><span key={k} style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1,width:36,textAlign:"center"}}>{k}</span>)}
+        </div>
+
+        {sorted.map((j,i)=>(
+          <div key={j.id} className="card-tap" onClick={()=>onPlayerClick(j)} style={{
+            display:"flex",alignItems:"center",padding:"10px 14px",
+            background:j.id===user.id?"rgba(30,80,212,0.08)":"rgba(255,255,255,0.02)",
+            border:j.id===user.id?"1px solid rgba(30,80,212,0.18)":"1px solid rgba(255,255,255,0.06)",
+            borderRadius:12,marginBottom:6,cursor:"pointer",transition:"all 0.2s",
+          }}>
+            <span style={{fontFamily:"'Bebas Neue'",fontSize:16,color:i<3?"#c9a84c":"rgba(255,255,255,0.2)",width:22,textAlign:"center"}}>
+              {i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}
+            </span>
+            <Av j={j} size={30}/>
+            <div style={{flex:1,marginLeft:10}}>
+              <div style={{fontWeight:700,fontSize:14,display:"flex",alignItems:"center",gap:6}}>
+                {j.nombre}
+                {j.id===user.id&&<span style={{fontSize:9,padding:"1px 6px",borderRadius:4,background:"rgba(30,80,212,0.15)",color:"#7cb9ff",border:"1px solid rgba(30,80,212,0.25)",fontWeight:600}}>vos</span>}
+              </div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{j.apodo}</div>
             </div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{j.apodo}</div>
+            <div style={{display:"flex",gap:4}}>
+              {[j.pj, vista==="anual"?j.puntosAnio:j.puntosMes, j.mvps].map((v,k)=>(
+                <div key={k} style={{fontFamily:"'Bebas Neue'",fontSize:k===1?20:15,color:k===1?"#2563eb":"rgba(255,255,255,0.4)",width:36,textAlign:"center"}}>{v}</div>
+              ))}
+            </div>
           </div>
-          <div style={{display:"flex",gap:4}}>
-            {[j.pj, vista==="mensual"?j.puntosMes:j.puntosAnio, j.mvps].map((v,k)=>(
-              <div key={k} style={{fontFamily:"'Bebas Neue'",fontSize:k===1?20:15,color:k===1?"#2563eb":"rgba(255,255,255,0.4)",width:36,textAlign:"center"}}>{v}</div>
+        ))}
+      </>)}
+
+      {tabla==="equipos" && (<>
+        <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.3)",marginBottom:10}}>Temporada 2025 — Liga interna</div>
+
+        {/* Header tabla equipos */}
+        <div style={{display:"flex",padding:"4px 14px",marginBottom:4}}>
+          <span style={{flex:1,fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1}}>EQUIPO</span>
+          {["PJ","PG","PE","PP","PTS"].map(k=><span key={k} style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",width:28,textAlign:"center"}}>{k}</span>)}
+        </div>
+
+        {equiposFulbito.map((eq,i)=>(
+          <div key={eq.nombre} style={{display:"flex",alignItems:"center",padding:"11px 14px",background:i===0?"rgba(201,168,76,0.06)":"rgba(255,255,255,0.02)",border:i===0?"1px solid rgba(201,168,76,0.2)":"1px solid rgba(255,255,255,0.06)",borderRadius:12,marginBottom:6}}>
+            <span style={{fontFamily:"'Bebas Neue'",fontSize:15,color:i<3?"#c9a84c":"rgba(255,255,255,0.2)",width:22,textAlign:"center"}}>{i+1}</span>
+            <div style={{width:30,height:30,borderRadius:8,background:"rgba(30,80,212,0.15)",border:"1px solid rgba(30,80,212,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginLeft:4,marginRight:10}}>🛡️</div>
+            <span style={{flex:1,fontWeight:700,fontSize:13}}>{eq.nombre}</span>
+            {[eq.pj,eq.pg,eq.pe,eq.pp,eq.pts].map((v,k)=>(
+              <div key={k} style={{fontFamily:"'Bebas Neue'",fontSize:k===4?18:13,color:k===4?"#2563eb":"rgba(255,255,255,0.4)",width:28,textAlign:"center"}}>{v}</div>
             ))}
           </div>
-        </div>
-      ))}
+        ))}
+      </>)}
     </div>
   );
 }
@@ -857,27 +1027,43 @@ function PageTemporada({ user, stats, onPlayerClick }) {
    PAGE: 5 IDEAL
 ───────────────────────────────────────── */
 function PageCincoIdeal({ stats, onPlayerClick }) {
-  const top5 = [...stats].sort((a,b)=>b.puntosMes-a.puntosMes).slice(0,5);
+  const [periodo, setPeriodo] = useState("mes");
+  const sorted = [...stats].sort((a,b)=>periodo==="anio"?b.puntosAnio-a.puntosAnio:b.puntosMes-a.puntosMes);
+  const top5 = sorted.slice(0,5);
+  const maxPts = sorted[0] ? (periodo==="anio"?sorted[0].puntosAnio:sorted[0].puntosMes)||1 : 1;
+
   return(
     <div className="fade-up">
-      <div style={{textAlign:"center",marginBottom:4}}>
-        <div style={{fontFamily:"'Bebas Neue'",fontSize:10,letterSpacing:3,color:"rgba(255,255,255,0.3)"}}>SEMANA 4 · MAYO 2025</div>
+      <div style={{textAlign:"center",marginBottom:8}}>
+        <div style={{fontFamily:"'Bebas Neue'",fontSize:10,letterSpacing:3,color:"rgba(255,255,255,0.3)"}}>AL-KOLIKO FC · 2025</div>
         <div style={{fontFamily:"'Bebas Neue'",fontSize:32,color:"#fff",letterSpacing:1}}>5 Ideal</div>
       </div>
 
-      {/* Cancha */}
-      <div style={{background:"linear-gradient(180deg,#04060f 0%,#08102a 50%,#04060f 100%)",borderRadius:16,border:"1px solid rgba(30,80,212,0.12)",padding:"24px 12px",marginBottom:14,position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",left:"50%",top:0,bottom:0,borderLeft:"1px dashed rgba(255,255,255,0.05)",transform:"translateX(-50%)"}}/>
-        <div style={{position:"absolute",left:"50%",top:"50%",width:72,height:72,border:"1px dashed rgba(255,255,255,0.05)",borderRadius:"50%",transform:"translate(-50%,-50%)"}}/>
+      {/* Tabs periodo */}
+      <div style={{display:"flex",gap:6,marginBottom:12,justifyContent:"center"}}>
+        {[["semana","Semana"],["mes","Mes"],["anio","Año"]].map(([v,l])=>(
+          <button key={v} onClick={()=>setPeriodo(v)} style={{padding:"5px 16px",borderRadius:99,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:11,background:periodo===v?"linear-gradient(135deg,#1440b8,#2563eb)":"rgba(255,255,255,0.05)",color:periodo===v?"#fff":"rgba(255,255,255,0.35)",transition:"all 0.2s"}}>{l}</button>
+        ))}
+      </div>
+
+      {/* Cancha táctica con figuritas */}
+      <div style={{background:"linear-gradient(180deg,#071a0a 0%,#0a2a10 40%,#071a0a 100%)",borderRadius:16,border:"1px solid rgba(34,197,94,0.12)",padding:"20px 8px 16px",marginBottom:14,position:"relative",overflow:"hidden"}}>
+        {/* Líneas de cancha */}
+        <div style={{position:"absolute",left:"50%",top:0,bottom:0,borderLeft:"1px dashed rgba(255,255,255,0.06)",transform:"translateX(-50%)"}}/>
+        <div style={{position:"absolute",left:"50%",top:"50%",width:80,height:80,border:"1px dashed rgba(255,255,255,0.06)",borderRadius:"50%",transform:"translate(-50%,-50%)"}}/>
+        <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:100,height:30,border:"1px dashed rgba(255,255,255,0.06)",borderTop:"none"}}/>
+        <div style={{position:"absolute",bottom:0,left:"50%",transform:"translateX(-50%)",width:100,height:30,border:"1px dashed rgba(255,255,255,0.06)",borderBottom:"none"}}/>
+
+        {/* Jugadores en formación 2-2-1 */}
         {[[0,1],[2,3],[4]].map(([a,b],row)=>(
-          <div key={row} style={{display:"flex",justifyContent:"space-around",marginBottom:row<2?22:0,position:"relative",zIndex:1}}>
+          <div key={row} style={{display:"flex",justifyContent:"space-around",marginBottom:row<2?16:0,position:"relative",zIndex:1}}>
             {[a,b].filter(x=>x!==undefined).map(idx=>{ const j=top5[idx]; if(!j) return null;
               return(
-                <div key={j.id} onClick={()=>onPlayerClick(j)} className="card-tap" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,cursor:"pointer"}}>
-                  <Av j={j} size={48} border/>
-                  <div style={{background:"rgba(5,9,20,0.88)",borderRadius:8,padding:"3px 10px",textAlign:"center",border:"1px solid rgba(255,255,255,0.08)"}}>
-                    <div style={{fontWeight:700,fontSize:11}}>{j.nombre}</div>
-                    <div style={{fontFamily:"'Bebas Neue'",fontSize:13,color:"#7cb9ff"}}>{j.puntosMes} pts</div>
+                <div key={j.id} onClick={()=>onPlayerClick(j)} className="card-tap" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,cursor:"pointer"}}>
+                  <FiguritaSVG jugador={j} size={80}/>
+                  <div style={{background:"rgba(0,0,0,0.7)",borderRadius:6,padding:"2px 8px",textAlign:"center",border:"1px solid rgba(255,255,255,0.1)"}}>
+                    <div style={{fontWeight:700,fontSize:10,color:"#fff"}}>{j.nombre}</div>
+                    <div style={{fontFamily:"'Bebas Neue'",fontSize:11,color:"#7cb9ff"}}>{periodo==="anio"?j.puntosAnio:j.puntosMes} pts</div>
                   </div>
                 </div>
               );
@@ -886,18 +1072,21 @@ function PageCincoIdeal({ stats, onPlayerClick }) {
         ))}
       </div>
 
-      {/* Ranking */}
-      <Lbl style={{marginBottom:8}}>Ranking del mes</Lbl>
-      {[...stats].sort((a,b)=>b.puntosMes-a.puntosMes).map((j,i)=>(
-        <div key={j.id} onClick={()=>onPlayerClick(j)} className="card-tap" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,marginBottom:6}}>
-          <span style={{fontFamily:"'Bebas Neue'",fontSize:14,color:i<3?"#c9a84c":"rgba(255,255,255,0.2)",width:18,textAlign:"center"}}>{i+1}</span>
-          <Av j={j} size={26}/>
-          <span style={{flex:1,fontWeight:600,fontSize:13}}>{j.nombre}</span>
+      {/* Ranking completo */}
+      <Lbl style={{marginBottom:8}}>Ranking {periodo==="semana"?"de la semana":periodo==="mes"?"del mes":"del año"}</Lbl>
+      {sorted.map((j,i)=>(
+        <div key={j.id} onClick={()=>onPlayerClick(j)} className="card-tap" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:i<5?"rgba(30,80,212,0.05)":"rgba(255,255,255,0.02)",border:i<5?"1px solid rgba(30,80,212,0.12)":"1px solid rgba(255,255,255,0.06)",borderRadius:10,marginBottom:6}}>
+          <span style={{fontFamily:"'Bebas Neue'",fontSize:14,color:i<3?"#c9a84c":i<5?"#7cb9ff":"rgba(255,255,255,0.2)",width:18,textAlign:"center"}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
+          <Av j={j} size={28}/>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:600,fontSize:13}}>{j.nombre}</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>{j.apodo}</div>
+          </div>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <div style={{height:4,width:70,background:"rgba(255,255,255,0.08)",borderRadius:99,overflow:"hidden"}}>
-              <div style={{height:"100%",width:`${(j.puntosMes/(stats[0]?.puntosMes||1))*100}%`,background:"#2563eb",borderRadius:99}}/>
+            <div style={{height:4,width:60,background:"rgba(255,255,255,0.08)",borderRadius:99,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${((periodo==="anio"?j.puntosAnio:j.puntosMes)/maxPts)*100}%`,background:i<5?"#2563eb":"rgba(255,255,255,0.2)",borderRadius:99}}/>
             </div>
-            <span style={{fontFamily:"'Bebas Neue'",fontSize:17,color:"#7cb9ff",width:30,textAlign:"right"}}>{j.puntosMes}</span>
+            <span style={{fontFamily:"'Bebas Neue'",fontSize:17,color:i<5?"#7cb9ff":"rgba(255,255,255,0.4)",width:32,textAlign:"right"}}>{periodo==="anio"?j.puntosAnio:j.puntosMes}</span>
           </div>
         </div>
       ))}
@@ -965,6 +1154,31 @@ const [texto, setTexto] = useState("");
 
   return(
     <div className="fade-up">
+      {/* Historias */}
+      <div style={{marginBottom:14,overflowX:"auto",paddingBottom:4}}>
+        <div style={{display:"flex",gap:10,width:"max-content"}}>
+          {/* Tu historia */}
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,cursor:"pointer"}}>
+            <div style={{width:56,height:56,borderRadius:"50%",border:"2px dashed rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255,255,255,0.04)"}}>
+              <span style={{fontSize:22}}>+</span>
+            </div>
+            <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",fontWeight:600}}>Tu historia</span>
+          </div>
+          {/* Historias de jugadores */}
+          {stats.slice(0,8).map((j,i)=>(
+            <div key={j.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,cursor:"pointer"}}>
+              <div style={{padding:2,borderRadius:"50%",background:i%3===0?"linear-gradient(135deg,#f59e0b,#ef4444)":i%3===1?"linear-gradient(135deg,#2563eb,#7c3aed)":"linear-gradient(135deg,#059669,#2563eb)"}}>
+                <div style={{padding:2,borderRadius:"50%",background:"#060b18"}}>
+                  <Av j={j} size={48} border/>
+                </div>
+              </div>
+              <span style={{fontSize:10,color:"rgba(255,255,255,0.5)",fontWeight:600,maxWidth:52,textAlign:"center",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{j.nombre}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Publicar */}
       <Card style={{padding:14,marginBottom:14}}>
         <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
           <Av j={user} size={34}/>
@@ -1027,22 +1241,50 @@ const [texto, setTexto] = useState("");
 }
 
 /* ─────────────────────────────────────────
-   PAGE: CARDS
+   PAGE: CARDS (solo admin)
 ───────────────────────────────────────── */
-function PageCards({ user, stats, onPlayerClick }) {
+function PageCards({ user, stats }) {
+  const [selected, setSelected] = useState(null);
+
   return(
     <div className="fade-up">
       <div style={{textAlign:"center",marginBottom:14}}>
         <div style={{fontFamily:"'Bebas Neue'",fontSize:32,color:"#fff",letterSpacing:1}}>Cards del Grupo</div>
-        <div style={{fontSize:12,color:"rgba(255,255,255,0.3)",marginTop:2}}>{user.isAdmin?"Tocá para ver · Admin puede editar":"Tocá una card para ver el perfil"}</div>
+        <div style={{fontSize:12,color:"rgba(255,255,255,0.3)",marginTop:2}}>{user.isAdmin?"Tocá para ver y editar":"Tocá una card para ver el perfil completo"}</div>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-        {stats.map(j=>(
-          <div key={j.id} className="card-tap" onClick={()=>onPlayerClick(j)} style={{display:"flex",justifyContent:"center"}}>
-            <FiguritaSVG jugador={j} size={160}/>
+
+      {selected ? (
+        <div className="fade-in">
+          <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.4)",fontSize:13,fontFamily:"'Outfit'",marginBottom:16,display:"flex",alignItems:"center",gap:6}}>← Volver a cards</button>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:20}}>
+            <FiguritaSVG jugador={selected} size={220}/>
           </div>
-        ))}
-      </div>
+          <Card style={{padding:16}}>
+            <div style={{fontWeight:800,fontSize:20,marginBottom:4}}>{selected.nombre} {selected.apellido}</div>
+            <div style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginBottom:12}}>{selected.apodo}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+              {[["Posición",selected.posicion],["Número","#"+selected.numero],["Rareza",selected.rareza],["Pierna",selected.pierna],["Ciudad",selected.ciudad],["Nivel",selected.nivel]].map(([k,v])=>(
+                <div key={k} style={{background:"rgba(255,255,255,0.03)",borderRadius:10,padding:"8px 12px"}}>
+                  <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginBottom:2}}>{k}</div>
+                  <div style={{fontWeight:700,fontSize:13}}>{v}</div>
+                </div>
+              ))}
+            </div>
+            <Lbl style={{marginBottom:8}}>Atributos</Lbl>
+            {[["Velocidad",selected.stats?.velocidad,"#2563eb"],["Pase",selected.stats?.pase,"#3b82f6"],["Defensa",selected.stats?.defensa,"#f59e0b"],["Tiro",selected.stats?.tiro,"#ef4444"],["Técnica",selected.stats?.tecnica,"#8b5cf6"],["Resistencia",selected.stats?.resistencia,"#06b6d4"]].map(([k,v,c])=>(
+              <StatBar key={k} label={k} value={v||0} color={c}/>
+            ))}
+          </Card>
+        </div>
+      ) : (
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          {stats.map(j=>(
+            <div key={j.id} className="card-tap" onClick={()=>setSelected(j)} style={{display:"flex",justifyContent:"center"}}>
+              <FiguritaSVG jugador={j} size={160}/>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1063,6 +1305,9 @@ useEffect(() => {
         puntosAnio: j.puntos_anio,
         fechaNac: j.fecha_nac,
         foto: j.foto_url,
+        equipoArg: j.equipo_arg,
+        equipoEu: j.equipo_eu,
+        ligaEu: j.liga_eu,
         stats: {
           velocidad: j.velocidad,
           pase: j.pase,
@@ -1150,9 +1395,9 @@ useEffect(() => {
           {tab===1&&<PageTemporada user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>}
           {tab===2&&<PageCincoIdeal stats={users} onPlayerClick={handlePlayerClick}/>}
           {tab===3&&<PageFeed user={loggedUser} stats={users} feed={feed} onFeedUpdate={setFeed}/>}
-          {tab===4&&<PageCards user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>}
+          {tab===4&&<PageCards user={loggedUser} stats={users}/>}
         </div>
-        <NavBottom active={tab} onChange={i=>{setTab(i);setShowAdmin(false);}} pendiente={1}/>
+        <NavBottom active={tab} onChange={i=>{setTab(i);setShowAdmin(false);}} pendiente={1} isAdmin={loggedUser.isAdmin}/>
       </div>
     </>
   );
