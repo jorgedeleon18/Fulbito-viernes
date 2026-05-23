@@ -9,7 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 // ⚠️ Usá la SERVICE_ROLE KEY, no la anon key
 // La encontrás en: supabase.com → Settings → API → service_role (secret)
 const SUPABASE_URL = 'https://lncnpzhbxgxkbpiahlwk.supabase.co';
-const SERVICE_ROLE_KEY = 'TU_SERVICE_ROLE_KEY_AQUI'; // ← Reemplazá esto
+const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuY25wemhieGd4a2JwaWFobHdrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTE0NjY0NywiZXhwIjoyMDk0NzIyNjQ3fQ.Nj10-XFq8SeE876nj59f4byG3bgGkW3YFK1AuGvJlPs'; // ← Reemplazá esto
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false }
