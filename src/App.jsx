@@ -833,14 +833,151 @@ function NavBottom({ active, onChange, pendiente, isAdmin }) {
 }
 
 /* ─────────────────────────────────────────
+   MODAL: CREAR PARTIDO
+───────────────────────────────────────── */
+function ModalCrearPartido({ users, user, onClose, onCreated }) {
+  const [cancha, setCancha] = useState("");
+  const [hora, setHora] = useState("21:00");
+  const [fecha, setFecha] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  });
+  const [precio, setPrecio] = useState("");
+  const [mapsUrl, setMapsUrl] = useState("");
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [guardando, setGuardando] = useState(false);
+  const [err, setErr] = useState("");
+
+  const appUsers = users;
+  const externalSlots = Array.from({ length: Math.max(0, 10 - selectedIds.length) }, (_, i) => i);
+
+  const toggleUser = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : prev.length < 10 ? [...prev, id] : prev
+    );
+  };
+
+  const shareWhatsApp = () => {
+    const fechaLeg = new Date(fecha).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+    const txt = encodeURIComponent(
+      `⚽ *Invitación al fulbito*\n📅 ${fechaLeg} a las ${hora} hs\n🏟️ ${cancha || "Cancha a confirmar"}\n💰 $${precio || "?"} por cabeza\n${mapsUrl ? `📍 ${mapsUrl}` : ""}\n\nDescargá la app y unite al grupo!`
+    );
+    window.open(`https://wa.me/?text=${txt}`, "_blank");
+  };
+
+  const handleCrear = async () => {
+    if (!cancha.trim()) { setErr("Indicá el nombre de la cancha"); return; }
+    setGuardando(true);
+    const fechaLeg = new Date(fecha).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+    const { data, error } = await supabase.from("partidos").insert({
+      fecha: fechaLeg,
+      hora,
+      cancha: cancha.trim(),
+      ubicacion: mapsUrl || cancha.trim(),
+      precio_cabeza: precio || null,
+      maps_url: mapsUrl || null,
+      jugadores: selectedIds,
+      equipo_a: [],
+      equipo_b: [],
+      confirmados: [user.id],
+      creado_por: user.id,
+      votacion_activa: false,
+    }).select().single();
+    setGuardando(false);
+    if (error) { setErr("Error al crear el partido"); return; }
+    if (onCreated) onCreated(data);
+    onClose();
+  };
+
+  return (
+    <div className="fade-in" style={{ position: "fixed", inset: 0, zIndex: 800, background: "rgba(0,0,0,0.97)", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <div style={{ position: "sticky", top: 0, zIndex: 2, background: "rgba(6,11,24,0.98)", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <div style={{ fontFamily: "'Bebas Neue'", fontSize: 22, letterSpacing: 1 }}>⚽ Crear Partido</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Completá los datos e invitá jugadores</div>
+        </div>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", width: 34, height: 34, borderRadius: "50%", cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+      </div>
+
+      <div style={{ padding: "20px 16px 40px", display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Fecha */}
+        <div>
+          <Lbl>📅 Fecha</Lbl>
+          <input className="ucl-input" type="date" value={fecha} onChange={e => setFecha(e.target.value)} />
+        </div>
+        {/* Hora */}
+        <div>
+          <Lbl>⏰ Hora</Lbl>
+          <input className="ucl-input" type="time" value={hora} onChange={e => setHora(e.target.value)} />
+        </div>
+        {/* Cancha */}
+        <div>
+          <Lbl>🏟️ Nombre de la cancha *</Lbl>
+          <input className="ucl-input" placeholder="Ej: Cancha La Estrella" value={cancha} onChange={e => setCancha(e.target.value)} />
+        </div>
+        {/* Precio */}
+        <div>
+          <Lbl>💰 Precio por cabeza ($)</Lbl>
+          <input className="ucl-input" type="number" placeholder="Ej: 3500" value={precio} onChange={e => setPrecio(e.target.value)} />
+        </div>
+        {/* Google Maps */}
+        <div>
+          <Lbl>📍 Ubicación en Google Maps (URL o dirección)</Lbl>
+          <input className="ucl-input" placeholder="Pegá el link de Google Maps o la dirección" value={mapsUrl} onChange={e => setMapsUrl(e.target.value)} />
+          {mapsUrl && mapsUrl.startsWith("http") && (
+            <a href={mapsUrl} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: "#7cb9ff", marginTop: 4, display: "block" }}>🔗 Ver ubicación</a>
+          )}
+        </div>
+
+        {/* Jugadores del grupo */}
+        <div>
+          <Lbl style={{ marginBottom: 6 }}>👥 Invitar jugadores del grupo ({selectedIds.length}/10)</Lbl>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {appUsers.map(j => {
+              const sel = selectedIds.includes(j.id);
+              return (
+                <div key={j.id} onClick={() => toggleUser(j.id)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, border: sel ? "1px solid rgba(30,80,212,0.5)" : "1px solid rgba(255,255,255,0.06)", background: sel ? "rgba(30,80,212,0.1)" : "rgba(255,255,255,0.03)", cursor: "pointer", transition: "all 0.15s" }}>
+                  <Av j={j} size={32} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13 }}>{j.nombre} {j.apellido}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{j.posicion} · {j.ciudad}</div>
+                  </div>
+                  <div style={{ width: 22, height: 22, borderRadius: "50%", border: sel ? "none" : "1.5px solid rgba(255,255,255,0.15)", background: sel ? "#2563eb" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>{sel ? "✓" : ""}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Invitar externos por WhatsApp */}
+        <div style={{ background: "rgba(37,211,102,0.06)", border: "1px solid rgba(37,211,102,0.2)", borderRadius: 14, padding: 14 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: "#4ade80", marginBottom: 4 }}>📲 Invitar por WhatsApp</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginBottom: 10 }}>Si un jugador no tiene la app, podés enviarle la invitación con los datos del partido por WhatsApp.</div>
+          <button onClick={shareWhatsApp} style={{ width: "100%", padding: "11px", borderRadius: 10, border: "none", cursor: "pointer", background: "#25D366", color: "#fff", fontFamily: "'Outfit'", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <span style={{ fontSize: 16 }}>💬</span> Enviar invitación por WhatsApp
+          </button>
+        </div>
+
+        {err && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#fca5a5", textAlign: "center" }}>⚠️ {err}</div>}
+
+        <BtnGreen onClick={handleCrear} disabled={guardando || !cancha.trim()}>
+          {guardando ? "Creando partido..." : "⚽ Crear partido"}
+        </BtnGreen>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
    PAGE: INICIO
 ───────────────────────────────────────── */
 // Mapeo de equipos a IDs de la API de football-data.org
 const TEAM_IDS = {
-  // Argentina (liga: 128)
-  "River Plate": 419, "Boca Juniors": 408, "Racing Club": 416, "Independiente": 411,
-  "San Lorenzo": 418, "Huracán": 412, "Vélez Sársfield": 420, "Lanús": 414,
-  "Banfield": 407, "Talleres (Córdoba)": 16461, "Belgrano": 7847, "Estudiantes (LP)": 16462,
+  // Argentina (liga: 128) - IDs verificados football-data.org
+  "River Plate": 419, "Boca Juniors": 408, "Racing Club": 418, "Independiente": 411,
+  "San Lorenzo": 416, "Huracán": 412, "Vélez Sársfield": 420, "Lanús": 414,
+  "Banfield": 407, "Talleres (Córdoba)": 7847, "Belgrano": 16461, "Estudiantes (LP)": 16462,
   "Gimnasia (LP)": 409, "Platense": 7849, "Tigre": 7851, "Godoy Cruz": 16463,
   // Premier League (liga: 2021)
   "Manchester City": 65, "Arsenal": 57, "Liverpool": 64, "Chelsea": 61,
@@ -895,7 +1032,17 @@ function useEquipoData(teamName) {
 
 function EquipoCard({ titulo, equipo, liga, emoji }) {
   const teamId = equipo ? TEAM_IDS[equipo] : null;
-  const logoUrl = teamId ? `https://crests.football-data.org/${teamId}.png` : null;
+  const logoUrl = teamId ? `https://crests.football-data.org/${teamId}.svg` : null;
+  const logoPng = teamId ? `https://crests.football-data.org/${teamId}.png` : null;
+  const [imgSrc, setImgSrc] = useState(logoUrl || logoPng);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => { if (logoUrl) { setImgSrc(logoUrl); setImgError(false); } }, [equipo]);
+
+  const handleImgError = () => {
+    if (imgSrc === logoUrl && logoPng) { setImgSrc(logoPng); }
+    else { setImgError(true); }
+  };
 
   if(!equipo) return (
     <div style={{background:"rgba(255,255,255,0.03)",border:"1px dashed rgba(255,255,255,0.1)",borderRadius:14,padding:14,flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6,minHeight:110}}>
@@ -906,14 +1053,18 @@ function EquipoCard({ titulo, equipo, liga, emoji }) {
   return (
     <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:12,flex:1,minHeight:110,overflow:"hidden",position:"relative"}}>
       {/* Escudo de fondo fantasma */}
-      {logoUrl && (
-        <img src={logoUrl} alt="" style={{position:"absolute",right:-10,top:"50%",transform:"translateY(-50%)",width:80,height:80,objectFit:"contain",opacity:0.07,pointerEvents:"none"}} onError={e=>e.target.style.display="none"}/>
+      {imgSrc && !imgError && (
+        <img src={imgSrc} alt="" style={{position:"absolute",right:-10,top:"50%",transform:"translateY(-50%)",width:80,height:80,objectFit:"contain",opacity:0.07,pointerEvents:"none"}} onError={()=>{}}/>
       )}
       <div style={{fontSize:9,fontWeight:700,letterSpacing:2,color:"rgba(255,255,255,0.3)",marginBottom:6}}>{titulo.toUpperCase()}</div>
       {/* Escudo + nombre */}
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-        {logoUrl && (
-          <img src={logoUrl} alt={equipo} style={{width:32,height:32,objectFit:"contain",flexShrink:0}} onError={e=>e.target.style.display="none"}/>
+        {imgSrc && !imgError ? (
+          <img src={imgSrc} alt={equipo}
+            style={{width:34,height:34,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 2px 6px rgba(0,0,0,0.5))"}}
+            onError={handleImgError}/>
+        ) : (
+          <div style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>{emoji}</div>
         )}
         <div>
           <div style={{fontWeight:800,fontSize:13,color:"#fff",lineHeight:1.2}}>{equipo}</div>
@@ -928,12 +1079,13 @@ function EquipoCard({ titulo, equipo, liga, emoji }) {
   );
 }
 
-function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick }) {
+function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick, users }) {
   const yaConfirmo = partido?.confirmados?.includes(user.id);
   const yaRechazo = partido?.rechazados?.includes(user.id);
   const [respondida, setRespondida] = useState(yaConfirmo || yaRechazo);
   const [confirmado, setConfirmado] = useState(yaConfirmo);
   const [confirmados, setConfirmados] = useState(partido?.confirmados || []);
+  const [showCrearPartido, setShowCrearPartido] = useState(false);
   const miStats = stats.find(s=>s.id===user.id);
   const media = Math.round(Object.values(miStats?.stats||{}).reduce((a,b)=>a+b,0)/6)||65;
 
@@ -957,6 +1109,30 @@ function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick }
 
   return(
     <div className="fade-up">
+      {showCrearPartido && (
+        <ModalCrearPartido
+          users={users || stats}
+          user={user}
+          onClose={() => setShowCrearPartido(false)}
+          onCreated={(nuevoPartido) => {
+            if (setPartido) setPartido({ ...nuevoPartido, equipoA: nuevoPartido.equipo_a || [], equipoB: nuevoPartido.equipo_b || [] });
+            setShowCrearPartido(false);
+          }}
+        />
+      )}
+
+      {/* Botón Crear Partido */}
+      <button onClick={() => setShowCrearPartido(true)} style={{
+        width: "100%", padding: "13px 16px", borderRadius: 14, marginBottom: 12,
+        border: "1px solid rgba(34,197,94,0.35)", cursor: "pointer",
+        fontFamily: "'Outfit'", fontWeight: 800, fontSize: 15,
+        background: "linear-gradient(135deg,rgba(5,150,105,0.2),rgba(16,185,129,0.1))",
+        color: "#4ade80", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+        boxShadow: "0 4px 20px rgba(34,197,94,0.12)", transition: "all 0.2s",
+      }}>
+        <span style={{ fontSize: 20 }}>⚽</span> CREAR PARTIDO
+      </button>
+
       {/* Banner partido */}
       <div style={{background:"linear-gradient(135deg,#04060f,#08102a)",border:"1px solid rgba(30,80,212,0.25)",borderRadius:16,padding:16,marginBottom:10,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-20,right:-20,opacity:0.06,pointerEvents:"none"}}><StarballSVG size={180} opacity={1}/></div>
@@ -965,7 +1141,12 @@ function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick }
         <div style={{display:"flex",gap:14,marginBottom:14,flexWrap:"wrap"}}>
           <span style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.5)"}}>⏰ {partido.hora} hs</span>
           <span style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.5)"}}>🏟️ {partido.cancha}</span>
-          <span style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.5)"}}>📍 {partido.ubicacion}</span>
+          {partido.maps_url ? (
+            <a href={partido.maps_url} target="_blank" rel="noreferrer" style={{fontSize:12,fontWeight:500,color:"#7cb9ff",textDecoration:"none"}}>📍 Ver ubicación</a>
+          ) : (
+            <span style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.5)"}}>📍 {partido.ubicacion}</span>
+          )}
+          {partido.precio_cabeza && <span style={{fontSize:12,fontWeight:500,color:"#4ade80"}}>💰 ${partido.precio_cabeza}/cabeza</span>}
         </div>
         <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:14}}>
           {confirmados.slice(0,6).map((id,i)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:i>0?-6:0,zIndex:10-i,cursor:"pointer"}} onClick={()=>onPlayerClick&&onPlayerClick(j)}><Av j={j} size={26} border/></div>:null; })}
@@ -1693,64 +1874,99 @@ function ModalVotacion({ partido, stats, user, votos, onClose, onVotado }) {
     onClose();
   };
 
-  const posA = [[50,75],[50,175],[50,275],[50,375],[50,475]];
-  const posB = [[250,75],[250,175],[250,275],[250,375],[250,475]];
+  // Render de una card de jugador votable — igual que 5 Ideal + controles monedas
+  const CardVotable = ({ j }) => {
+    if (!j) return null;
+    const esYo = j.id === user.id;
+    const mon = monedas[j.id] || 0;
+    return (
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,cursor:"default"}}>
+        <div style={{position:"relative"}}>
+          <FiguritaSVG jugador={j} size={80}/>
+          {mon > 0 && (
+            <div style={{position:"absolute",top:0,right:-2,background:"#fbbf24",borderRadius:"50%",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:"#000",boxShadow:"0 2px 8px rgba(0,0,0,0.7)",zIndex:10,border:"2px solid #000"}}>
+              {mon}
+            </div>
+          )}
+        </div>
+        <div style={{background:"rgba(0,0,0,0.75)",borderRadius:6,padding:"3px 8px",textAlign:"center",border:"1px solid rgba(255,255,255,0.1)",opacity:esYo?0.45:1,minWidth:64}}>
+          <div style={{fontWeight:700,fontSize:10,color:"#fff",marginBottom:esYo?0:2}}>{j.nombre}</div>
+          {esYo
+            ? <div style={{fontSize:8,color:"rgba(255,255,255,0.3)"}}>no votable</div>
+            : (
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:3}}>
+                <button onClick={()=>cambiar(j.id,-1)} disabled={!mon} style={{width:17,height:17,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.2)",background:"rgba(0,0,0,0.7)",color:"#fff",cursor:mon?"pointer":"not-allowed",fontSize:12,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",opacity:mon?1:0.25,padding:0,lineHeight:1}}>−</button>
+                <span style={{fontFamily:"'Bebas Neue'",fontSize:14,color:mon>0?"#fbbf24":"rgba(255,255,255,0.35)",minWidth:14,textAlign:"center"}}>{mon}</span>
+                <button onClick={()=>cambiar(j.id,1)} disabled={restantes<=0} style={{width:17,height:17,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.2)",background:"rgba(0,0,0,0.7)",color:"#fff",cursor:restantes>0?"pointer":"not-allowed",fontSize:12,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",opacity:restantes>0?1:0.25,padding:0,lineHeight:1}}>+</button>
+              </div>
+            )
+          }
+        </div>
+      </div>
+    );
+  };
+
+  // Renderiza un bloque de 5 jugadores en formación 2-2-1 (igual que 5 Ideal)
+  const FormacionEquipo = ({ equipo, label, color }) => (
+    <div style={{marginBottom:10}}>
+      <div style={{fontSize:9,fontWeight:800,letterSpacing:2,color,textAlign:"center",marginBottom:6}}>{label}</div>
+      {[[0,1],[2,3],[4]].map(([a,b],row)=>(
+        <div key={row} style={{display:"flex",justifyContent:"space-around",marginBottom:row<2?12:0,position:"relative",zIndex:1}}>
+          {[a,b].filter(x=>x!==undefined).map(idx=>{
+            const j = equipo[idx];
+            return j ? <CardVotable key={j.id} j={j}/> : null;
+          })}
+        </div>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="fade-in" style={{position:"fixed",inset:0,zIndex:600,background:"rgba(0,0,0,0.95)",display:"flex",flexDirection:"column"}}>
+    <div className="fade-in" style={{position:"fixed",inset:0,zIndex:600,background:"rgba(0,0,0,0.97)",display:"flex",flexDirection:"column"}}>
       {/* Header */}
-      <div style={{padding:"14px 16px",background:"#0a1020",borderBottom:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+      <div style={{padding:"12px 16px",background:"#0a1020",borderBottom:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
         <div>
           <div style={{fontFamily:"'Bebas Neue'",fontSize:20,letterSpacing:1}}>🪙 Repartí tus monedas</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Total: 10 monedas · No podés votarte a vos mismo</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>10 monedas · No podés votarte a vos mismo</div>
         </div>
         <div style={{textAlign:"center"}}>
-          <div style={{fontFamily:"'Bebas Neue'",fontSize:32,color:restantes>0?"#fbbf24":"#4ade80",lineHeight:1}}>{restantes}</div>
+          <div style={{fontFamily:"'Bebas Neue'",fontSize:34,color:restantes>0?"#fbbf24":"#4ade80",lineHeight:1}}>{restantes}</div>
           <div style={{fontSize:9,color:"rgba(255,255,255,0.3)"}}>restantes</div>
         </div>
       </div>
 
-      {/* Cancha SVG con cards */}
-      <div style={{flex:1,overflowY:"auto",padding:16}}>
-        {/* Cancha visual */}
-        <div style={{background:"linear-gradient(180deg,#071a0a,#0a2a10,#071a0a)",borderRadius:14,padding:16,marginBottom:16,border:"1px solid rgba(34,197,94,0.12)"}}>
-          <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:8,alignItems:"center",marginBottom:8}}>
-            <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#2563eb"}}>EQUIPO A</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,0.2)",fontFamily:"'Bebas Neue'",fontSize:18}}>VS</div>
-            <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#ef4444",textAlign:"right"}}>EQUIPO B</div>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-            {[equipoA, equipoB].map((equipo, lado) =>
-              equipo.map(j => {
-                const esYo = j.id === user.id;
-                return (
-                  <div key={j.id} style={{background:esYo?"rgba(255,255,255,0.03)":lado===0?"rgba(30,80,212,0.08)":"rgba(239,68,68,0.08)",border:esYo?"1px dashed rgba(255,255,255,0.1)":lado===0?"1px solid rgba(30,80,212,0.2)":"1px solid rgba(239,68,68,0.2)",borderRadius:12,padding:"10px 12px",opacity:esYo?0.5:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:esYo?0:8}}>
-                      <Av j={j} size={30}/>
-                      <div style={{flex:1}}>
-                        <div style={{fontWeight:700,fontSize:12}}>{j.nombre}</div>
-                        <div style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>{j.posicion}{esYo?" · No podés votarte":""}</div>
-                      </div>
-                    </div>
-                    {!esYo && (
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:6}}>
-                        <button onClick={()=>cambiar(j.id,-1)} disabled={!monedas[j.id]} style={{width:28,height:28,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.06)",color:"white",cursor:"pointer",fontSize:16,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",opacity:monedas[j.id]?1:0.3}}>−</button>
-                        <div style={{fontFamily:"'Bebas Neue'",fontSize:22,color:monedas[j.id]>0?"#fbbf24":"rgba(255,255,255,0.3)",minWidth:28,textAlign:"center"}}>{monedas[j.id]||0}</div>
-                        <button onClick={()=>cambiar(j.id,1)} disabled={restantes<=0} style={{width:28,height:28,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.06)",color:"white",cursor:"pointer",fontSize:16,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",opacity:restantes>0?1:0.3}}>+</button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
+      {/* CANCHA COMPLETA — estilo idéntico a 5 Ideal, dos mitades */}
+      <div style={{flex:1,overflowY:"auto",padding:"10px 8px 20px"}}>
+        <div style={{
+          background:"linear-gradient(180deg,#071a0a 0%,#0a2a10 40%,#071a0a 100%)",
+          borderRadius:16, border:"1px solid rgba(34,197,94,0.12)",
+          padding:"16px 8px 16px", position:"relative", overflow:"hidden",
+        }}>
+          {/* Líneas de cancha — exactas al 5 Ideal */}
+          <div style={{position:"absolute",left:"50%",top:0,bottom:0,borderLeft:"1px dashed rgba(255,255,255,0.06)",transform:"translateX(-50%)"}}/>
+          <div style={{position:"absolute",left:"50%",top:"50%",width:80,height:80,border:"1px dashed rgba(255,255,255,0.06)",borderRadius:"50%",transform:"translate(-50%,-50%)"}}/>
+          <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:100,height:30,border:"1px dashed rgba(255,255,255,0.06)",borderTop:"none"}}/>
+          <div style={{position:"absolute",bottom:0,left:"50%",transform:"translateX(-50%)",width:100,height:30,border:"1px dashed rgba(255,255,255,0.06)",borderBottom:"none"}}/>
+
+          {/* Equipo A — mitad de arriba, formación 2-2-1 */}
+          <FormacionEquipo equipo={equipoA} label="⬆ EQUIPO A" color="#60a5fa"/>
+
+          {/* Divisor central */}
+          <div style={{borderTop:"1px dashed rgba(255,255,255,0.08)",margin:"10px 0",position:"relative",zIndex:1}}/>
+
+          {/* Equipo B — mitad de abajo, formación 2-2-1 */}
+          <FormacionEquipo equipo={equipoB} label="⬇ EQUIPO B" color="#f87171"/>
+        </div>
+
+        <div style={{textAlign:"center",fontSize:11,color:"rgba(255,255,255,0.22)",marginTop:10}}>
+          Tocá + y − para repartir tus 🪙
         </div>
       </div>
 
       {/* Footer */}
-      <div style={{padding:16,background:"#0a1020",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",gap:10,flexShrink:0}}>
+      <div style={{padding:"12px 16px",background:"#0a1020",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",gap:10,flexShrink:0}}>
         <BtnOutline onClick={onClose} style={{flex:1}}>Cancelar</BtnOutline>
-        <BtnGreen onClick={confirmar} style={{flex:2}}>🪙 Confirmar voto ({usado}/{TOTAL} monedas)</BtnGreen>
+        <BtnGreen onClick={confirmar} style={{flex:2}}>🪙 Confirmar ({usado}/{TOTAL} monedas)</BtnGreen>
       </div>
     </div>
   );
@@ -1956,7 +2172,7 @@ useEffect(() => {
         )}
         <Header user={loggedUser} onAdmin={()=>setShowAdmin(true)} onLogout={handleLogout} onProfile={()=>setSelectedPlayer(loggedUser)}/>
         <div style={{padding:"14px 14px 82px",position:"relative",zIndex:1}}>
-          {tab===0&&<PageInicio user={loggedUser} partido={partido} setPartido={setPartido} stats={users} onVotar={()=>{setTab(1);}} onPlayerClick={handlePlayerClick}/>}
+          {tab===0&&<PageInicio user={loggedUser} partido={partido} setPartido={setPartido} stats={users} onVotar={()=>{setTab(1);}} onPlayerClick={handlePlayerClick} users={users}/>}
           {tab===1&&<PageTemporada user={loggedUser} stats={users} partido={partido} votos={votos} onVotar={()=>setShowVotacion(partido)} onPlayerClick={handlePlayerClick}/>}
           {tab===2&&<PageCincoIdeal stats={users} user={loggedUser} onPlayerClick={handlePlayerClick} isAdmin={loggedUser?.isAdmin}/>}
           {tab===3&&<PageFeed user={loggedUser} stats={users} feed={feed} onFeedUpdate={setFeed}/>}
