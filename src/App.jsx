@@ -149,9 +149,11 @@ export default function App() {
   const [showVotacion, setShowVotacion] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showCardModal, setShowCardModal] = useState(null);
-  const [tabTemporada, setTabTemporada] = useState("jugadores");
+  const [tabTemporada, setTabTemporada] = useState("equipos");
   const [tabRanking, setTabRanking] = useState("mes");
   const [tab5Ideal, setTab5Ideal] = useState("mes");
+  // ← MOVIDO AQUÍ: no puede estar después de un return condicional
+  const [asistenciaRespondida, setAsistenciaRespondida] = useState(false);
 
   // ── AUTH ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -176,6 +178,14 @@ export default function App() {
     if (!user) return;
     fetchAll();
   }, [user]);
+
+  // Sincronizar asistenciaRespondida cuando carga el partido
+  useEffect(() => {
+    if (!partido || !user) return;
+    const yaConfirmo = (partido.confirmados || []).includes(user.id);
+    const yaRechazo = (partido.rechazados || []).includes(user.id);
+    if (yaConfirmo || yaRechazo) setAsistenciaRespondida(true);
+  }, [partido?.id]);
 
   async function fetchAll() {
     const [{ data: js }, { data: ps }, { data: cs }, { data: ls }, { data: pt }, { data: vs }] = await Promise.all([
@@ -208,10 +218,7 @@ export default function App() {
 
   // ── CONFIRMACIÓN ASISTENCIA ───────────────────────────────────────────────
   const confirmados = partido?.confirmados || [];
-  const yoConfirme = confirmados.includes(user.id);
-  const [asistenciaRespondida, setAsistenciaRespondida] = useState(
-    confirmados.includes(user.id) || partido?.rechazados?.includes(user.id)
-  );
+  const yoConfirme = confirmados.includes(user?.id || "");
 
   async function confirmarAsistencia(si) {
     if (!partido) return;
@@ -274,7 +281,7 @@ export default function App() {
             yoConfirme={yoConfirme}
             asistenciaRespondida={asistenciaRespondida}
             onConfirmar={confirmarAsistencia}
-            onVotar={() => setTab("temporada")}
+            onVotar={() => { setTab("temporada"); setTabTemporada("equipos"); }}
             votos={votos}
           />
         )}
@@ -1226,6 +1233,7 @@ function ModalVotacion({ partido, jugadores, user, votos, onClose, onVotar }) {
 function ModalEditarPerfil({ user, onClose, onSave }) {
   const [form, setForm] = useState({
     apodo: user.apodo || "",
+    nombre_usuario: user.nombre_usuario || user.apodo || "",
     ciudad: user.ciudad || "",
     celular: user.celular || "",
     equipo_arg: user.equipo_arg || "",
@@ -1234,7 +1242,9 @@ function ModalEditarPerfil({ user, onClose, onSave }) {
   });
   const [newPass, setNewPass] = useState("");
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
+  // Si el usuario ya tiene una liga guardada, mostrar los equipos de esa liga
   const equiposEu = EQUIPOS_EU[form.liga_eu] || [];
 
   async function handleSave() {
@@ -1245,6 +1255,8 @@ function ModalEditarPerfil({ user, onClose, onSave }) {
       await supabase.auth.updateUser({ password: newPass });
     }
     setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   }
 
   const inp = { background:"#334155", border:"1px solid #475569", borderRadius:8, padding:"10px 12px", color:"white", fontSize:14, width:"100%", boxSizing:"border-box" };
@@ -1258,52 +1270,73 @@ function ModalEditarPerfil({ user, onClose, onSave }) {
           <button onClick={onClose} style={{ background:"#334155", border:"none", borderRadius:"50%", width:32, height:32, color:"white", cursor:"pointer", fontSize:18 }}>×</button>
         </div>
 
-        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-          <div>
-            <span style={label}>Apodo futbolero</span>
-            <input style={inp} value={form.apodo} onChange={e=>setForm(p=>({...p,apodo:e.target.value}))} placeholder="Tu apodo" />
+        {/* Datos del usuario (solo lectura) */}
+        <div style={{ background:"#334155", borderRadius:12, padding:"10px 14px", marginBottom:16, display:"flex", gap:12, alignItems:"center" }}>
+          <div style={{ width:42, height:42, borderRadius:"50%", background: user.color||"#4ade80", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:15, color:"#0f172a", flexShrink:0 }}>
+            {user.foto_url ? <img src={user.foto_url} style={{width:42,height:42,borderRadius:"50%",objectFit:"cover"}}/> : `${user.nombre?.[0]||""}${user.apellido?.[0]||""}`}
           </div>
           <div>
-            <span style={label}>Barrio / Ciudad</span>
+            <div style={{ fontWeight:700, fontSize:15 }}>{user.nombre} {user.apellido}</div>
+            <div style={{ color:"#64748b", fontSize:11 }}>Nombre y apellido no se pueden editar</div>
+          </div>
+        </div>
+
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          <div>
+            <span style={label}>👤 Nombre de usuario</span>
+            <input style={inp} value={form.nombre_usuario} onChange={e=>setForm(p=>({...p,nombre_usuario:e.target.value}))} placeholder="Tu nombre de usuario" />
+          </div>
+          <div>
+            <span style={label}>⚡ Apodo futbolero</span>
+            <input style={inp} value={form.apodo} onChange={e=>setForm(p=>({...p,apodo:e.target.value}))} placeholder="Tu apodo en la cancha" />
+          </div>
+          <div>
+            <span style={label}>🏠 Domicilio / Barrio</span>
             <input style={inp} value={form.ciudad} onChange={e=>setForm(p=>({...p,ciudad:e.target.value}))} placeholder="Tu barrio o ciudad" />
           </div>
           <div>
-            <span style={label}>Celular</span>
+            <span style={label}>📱 Celular</span>
             <input style={inp} value={form.celular} onChange={e=>setForm(p=>({...p,celular:e.target.value}))} placeholder="+54 11 ..." type="tel" />
           </div>
           <div>
             <span style={label}>🇦🇷 Club argentino favorito</span>
             <select style={inp} value={form.equipo_arg} onChange={e=>setForm(p=>({...p,equipo_arg:e.target.value}))}>
-              <option value="">— Seleccioná —</option>
-              {EQUIPOS_ARG.map(eq => <option key={eq}>{eq}</option>)}
+              <option value="">— Seleccioná tu club —</option>
+              {EQUIPOS_ARG.map(eq => <option key={eq} value={eq}>{eq}</option>)}
             </select>
+            {form.equipo_arg && (
+              <div style={{ marginTop:6, color:"#4ade80", fontSize:12, fontWeight:700 }}>✅ {form.equipo_arg}</div>
+            )}
           </div>
           <div>
             <span style={label}>🌍 Liga europea</span>
             <select style={inp} value={form.liga_eu} onChange={e=>setForm(p=>({...p,liga_eu:e.target.value,equipo_eu:""}))}>
               <option value="">— Seleccioná liga —</option>
-              {LIGAS_EU.map(l => <option key={l}>{l}</option>)}
+              {LIGAS_EU.map(l => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
           {form.liga_eu && (
             <div>
-              <span style={label}>🏟️ Club europeo favorito</span>
+              <span style={label}>🏟️ Club europeo favorito ({form.liga_eu})</span>
               <select style={inp} value={form.equipo_eu} onChange={e=>setForm(p=>({...p,equipo_eu:e.target.value}))}>
                 <option value="">— Seleccioná club —</option>
-                {equiposEu.map(eq => <option key={eq}>{eq}</option>)}
+                {equiposEu.map(eq => <option key={eq} value={eq}>{eq}</option>)}
               </select>
+              {form.equipo_eu && (
+                <div style={{ marginTop:6, color:"#4ade80", fontSize:12, fontWeight:700 }}>✅ {form.equipo_eu}</div>
+              )}
             </div>
           )}
-          <div>
-            <span style={label}>Nueva contraseña (opcional, mín. 6 caracteres)</span>
+          <div style={{ borderTop:"1px solid #334155", paddingTop:14 }}>
+            <span style={label}>🔐 Nueva contraseña (opcional, mín. 6 caracteres)</span>
             <input style={inp} value={newPass} onChange={e=>setNewPass(e.target.value)} placeholder="Dejá vacío para no cambiar" type="password" />
           </div>
         </div>
 
         <div style={{ display:"flex", gap:10, marginTop:20 }}>
           <button onClick={onClose} style={{ flex:1, background:"#334155", color:"white", border:"none", borderRadius:10, padding:12, fontWeight:700, cursor:"pointer" }}>Cancelar</button>
-          <button onClick={handleSave} disabled={saving} style={{ flex:2, background:"#4ade80", color:"#0f172a", border:"none", borderRadius:10, padding:12, fontWeight:900, cursor:"pointer" }}>
-            {saving ? "Guardando..." : "Guardar cambios"}
+          <button onClick={handleSave} disabled={saving} style={{ flex:2, background: saved?"#16a34a":"#4ade80", color:"#0f172a", border:"none", borderRadius:10, padding:12, fontWeight:900, cursor:"pointer", transition:"background 0.3s" }}>
+            {saving ? "Guardando..." : saved ? "✅ ¡Guardado!" : "Guardar cambios"}
           </button>
         </div>
       </div>
