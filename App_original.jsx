@@ -287,7 +287,7 @@ function StatBar({ label, value, color="#2563eb" }) {
 /* ─────────────────────────────────────────
    MODAL JUGADOR
 ───────────────────────────────────────── */
-function PlayerModal({ jugador, onClose, isAdmin, isMiPerfil, onSave, onSavePerfil }) {
+function PlayerModal({ jugador, onClose, isAdmin, onSave }) {
   const [editing, setEditing] = useState(false);
   const [tab, setTab] = useState("stats");
   const [form, setForm] = useState({...jugador});
@@ -333,9 +333,9 @@ function PlayerModal({ jugador, onClose, isAdmin, isMiPerfil, onSave, onSavePerf
           )}
 
           <div style={{display:"flex",gap:6,marginBottom:14,overflowX:"auto",paddingBottom:4}}>
-            {["stats","figurita",...(isMiPerfil?["miperfil"]:[]),...(isAdmin?["editar"]:[])].map(t=>(
-              <button key={t} onClick={()=>setTab(t)} style={{padding:"6px 16px",borderRadius:99,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:12,background:tab===t?"#2563eb":"rgba(255,255,255,0.06)",color:tab===t?"#fff":"rgba(255,255,255,0.5)",whiteSpace:"nowrap",transition:"all 0.2s"}}>
-                {t==="stats"?"📊 Stats":t==="figurita"?"🎴 Figurita":t==="miperfil"?"👤 Mi perfil":"✏️ Editar"}
+            {["stats","figurita","editar"].filter(t=>t!=="editar"||isAdmin).map(t=>(
+              <button key={t} onClick={()=>setTab(t)} style={{padding:"6px 16px",borderRadius:99,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:12,background:tab===t?"#2563eb":"rgba(255,255,255,0.06)",color:tab===t?"#000":"rgba(255,255,255,0.5)",whiteSpace:"nowrap",transition:"all 0.2s"}}>
+                {t==="stats"?"📊 Stats":t==="figurita"?"🎴 Figurita":"✏️ Editar"}
               </button>
             ))}
           </div>
@@ -398,11 +398,6 @@ function PlayerModal({ jugador, onClose, isAdmin, isMiPerfil, onSave, onSavePerf
                 Figurita generada automáticamente<br/>Completá tu perfil para mejorar tus stats
               </div>
             </div>
-          )}
-
-          {/* MI PERFIL — editable por el propio usuario */}
-          {tab==="miperfil"&&isMiPerfil&&(
-            <TabMiPerfil jugador={jugador} onSave={onSavePerfil}/>
           )}
 
           {/* EDITAR (solo admin) */}
@@ -835,68 +830,7 @@ function NavBottom({ active, onChange, pendiente, isAdmin }) {
 /* ─────────────────────────────────────────
    PAGE: INICIO
 ───────────────────────────────────────── */
-// Mapeo de equipos a IDs de la API de football-data.org
-const TEAM_IDS = {
-  // Argentina (liga: 128)
-  "River Plate": 419, "Boca Juniors": 408, "Racing Club": 416, "Independiente": 411,
-  "San Lorenzo": 418, "Huracán": 412, "Vélez Sársfield": 420, "Lanús": 414,
-  "Banfield": 407, "Talleres (Córdoba)": 16461, "Belgrano": 7847, "Estudiantes (LP)": 16462,
-  "Gimnasia (LP)": 409, "Platense": 7849, "Tigre": 7851, "Godoy Cruz": 16463,
-  // Premier League (liga: 2021)
-  "Manchester City": 65, "Arsenal": 57, "Liverpool": 64, "Chelsea": 61,
-  "Manchester United": 66, "Tottenham": 73, "Newcastle": 67, "Aston Villa": 58,
-  "Brighton": 397, "West Ham": 563,
-  // La Liga (liga: 2014)
-  "Real Madrid": 86, "Barcelona": 81, "Atletico Madrid": 78, "Sevilla": 559,
-  "Real Sociedad": 92, "Real Betis": 90, "Valencia": 95, "Villarreal": 94,
-  "Athletic Bilbao": 77, "Osasuna": 79,
-  // Serie A (liga: 2019)
-  "Inter Milan": 108, "AC Milan": 98, "Juventus": 109, "Napoli": 113,
-  "AS Roma": 100, "Lazio": 110, "Fiorentina": 99, "Atalanta": 102,
-  "Bologna": 103, "Torino": 586,
-  // Bundesliga (liga: 2002)
-  "Bayern Munich": 5, "Borussia Dortmund": 4, "RB Leipzig": 721,
-  "Bayer Leverkusen": 3, "Eintracht Frankfurt": 19, "Wolfsburg": 11,
-  "Freiburg": 17, "Union Berlin": 28003, "Hoffenheim": 715, "Stuttgart": 10,
-  // Ligue 1 (liga: 2015)
-  "PSG": 524, "Marseille": 516, "Lyon": 523, "Monaco": 548,
-  "Lille": 521, "Nice": 522, "Rennes": 529, "Lens": 546,
-  "Strasbourg": 576, "Montpellier": 518,
-};
-
-// Mapeo de nombre equipo → escudo URL (logo via API football-data)
-function useEquipoData(teamName) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    if (!teamName) return;
-    const teamId = TEAM_IDS[teamName];
-    if (!teamId) return;
-    setLoading(true);
-    // Usamos la API pública de football-data (free tier, no CORS issues con proxy)
-    // Fallback: solo mostrar logo desde Wikipedia/Clearbit
-    const logo = `https://crests.football-data.org/${teamId}.png`;
-    // Próximo partido y último resultado via API
-    fetch(`https://api.football-data.org/v4/teams/${teamId}/matches?status=SCHEDULED&limit=1`, {
-      headers: { "X-Auth-Token": "placeholder" }
-    })
-    .then(r => r.ok ? r.json() : null)
-    .then(d => {
-      setData({ logo, nextMatch: d?.matches?.[0] || null });
-      setLoading(false);
-    })
-    .catch(() => {
-      setData({ logo, nextMatch: null });
-      setLoading(false);
-    });
-  }, [teamName]);
-  return { data, loading };
-}
-
 function EquipoCard({ titulo, equipo, liga, emoji }) {
-  const teamId = equipo ? TEAM_IDS[equipo] : null;
-  const logoUrl = teamId ? `https://crests.football-data.org/${teamId}.png` : null;
-
   if(!equipo) return (
     <div style={{background:"rgba(255,255,255,0.03)",border:"1px dashed rgba(255,255,255,0.1)",borderRadius:14,padding:14,flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6,minHeight:110}}>
       <span style={{fontSize:22}}>{emoji}</span>
@@ -904,56 +838,22 @@ function EquipoCard({ titulo, equipo, liga, emoji }) {
     </div>
   );
   return (
-    <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:12,flex:1,minHeight:110,overflow:"hidden",position:"relative"}}>
-      {/* Escudo de fondo fantasma */}
-      {logoUrl && (
-        <img src={logoUrl} alt="" style={{position:"absolute",right:-10,top:"50%",transform:"translateY(-50%)",width:80,height:80,objectFit:"contain",opacity:0.07,pointerEvents:"none"}} onError={e=>e.target.style.display="none"}/>
-      )}
+    <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:14,flex:1,minHeight:110}}>
       <div style={{fontSize:9,fontWeight:700,letterSpacing:2,color:"rgba(255,255,255,0.3)",marginBottom:6}}>{titulo.toUpperCase()}</div>
-      {/* Escudo + nombre */}
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-        {logoUrl && (
-          <img src={logoUrl} alt={equipo} style={{width:32,height:32,objectFit:"contain",flexShrink:0}} onError={e=>e.target.style.display="none"}/>
-        )}
-        <div>
-          <div style={{fontWeight:800,fontSize:13,color:"#fff",lineHeight:1.2}}>{equipo}</div>
-          {liga&&<div style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>{liga}</div>}
-        </div>
-      </div>
-      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+      <div style={{fontWeight:800,fontSize:14,color:"#fff",marginBottom:2,lineHeight:1.2}}>{equipo}</div>
+      {liga&&<div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginBottom:8}}>{liga}</div>}
+      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
         <span style={{fontSize:9,padding:"2px 7px",borderRadius:99,background:"rgba(30,80,212,0.15)",color:"#7cb9ff",border:"1px solid rgba(30,80,212,0.2)"}}>Próx: TBD</span>
-        <span style={{fontSize:9,padding:"2px 7px",borderRadius:99,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.08)"}}>Últ: TBD</span>
+        <span style={{fontSize:9,padding:"2px 7px",borderRadius:99,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.08)"}}>Tabla: TBD</span>
       </div>
     </div>
   );
 }
 
-function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick }) {
-  const yaConfirmo = partido?.confirmados?.includes(user.id);
-  const yaRechazo = partido?.rechazados?.includes(user.id);
-  const [respondida, setRespondida] = useState(yaConfirmo || yaRechazo);
-  const [confirmado, setConfirmado] = useState(yaConfirmo);
-  const [confirmados, setConfirmados] = useState(partido?.confirmados || []);
+function PageInicio({ user, partido, stats, onVotar, onPlayerClick }) {
+  const [confirmado, setConfirmado] = useState(partido?.confirmados?.includes(user.id));
   const miStats = stats.find(s=>s.id===user.id);
   const media = Math.round(Object.values(miStats?.stats||{}).reduce((a,b)=>a+b,0)/6)||65;
-
-  const handleConfirmar = async (si) => {
-    if (!partido) return;
-    let nuevosConf = [...confirmados];
-    let nuevosRech = [...(partido.rechazados || [])];
-    if (si) {
-      if (!nuevosConf.includes(user.id)) nuevosConf.push(user.id);
-      nuevosRech = nuevosRech.filter(id => id !== user.id);
-    } else {
-      nuevosRech = [...new Set([...nuevosRech, user.id])];
-      nuevosConf = nuevosConf.filter(id => id !== user.id);
-    }
-    await supabase.from("partidos").update({ confirmados: nuevosConf, rechazados: nuevosRech }).eq("id", partido.id);
-    setConfirmados(nuevosConf);
-    setConfirmado(si);
-    setRespondida(true);
-    if (setPartido) setPartido(prev => ({ ...prev, confirmados: nuevosConf, rechazados: nuevosRech }));
-  };
 
   return(
     <div className="fade-up">
@@ -968,23 +868,17 @@ function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick }
           <span style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.5)"}}>📍 {partido.ubicacion}</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:14}}>
-          {confirmados.slice(0,6).map((id,i)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:i>0?-6:0,zIndex:10-i,cursor:"pointer"}} onClick={()=>onPlayerClick&&onPlayerClick(j)}><Av j={j} size={26} border/></div>:null; })}
-          <span style={{marginLeft:8,fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)"}}>{confirmados.length} confirmados</span>
+          {partido.jugadores.slice(0,6).map((id,i)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:i>0?-6:0,zIndex:10-i,cursor:"pointer"}} onClick={()=>onPlayerClick&&onPlayerClick(j)}><Av j={j} size={26} border/></div>:null; })}
+          <span style={{marginLeft:8,fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)"}}>{partido.confirmados?.length||0} confirmados</span>
         </div>
-        {!respondida ? (
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            <button onClick={()=>handleConfirmar(true)} style={{padding:"10px",borderRadius:10,border:"1px solid rgba(30,80,212,0.3)",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:700,fontSize:13,background:"rgba(30,80,212,0.15)",color:"#2563eb",transition:"all 0.2s"}}>
-              Confirmar
-            </button>
-            <button onClick={()=>handleConfirmar(false)} style={{padding:"10px",borderRadius:10,border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:700,fontSize:13,background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.35)",transition:"all 0.2s"}}>
-              No puedo
-            </button>
-          </div>
-        ) : (
-          <div style={{padding:"10px 14px",borderRadius:10,background:confirmado?"rgba(30,80,212,0.12)":"rgba(239,68,68,0.08)",border:confirmado?"1px solid rgba(30,80,212,0.25)":"1px solid rgba(239,68,68,0.15)",fontSize:13,fontWeight:700,color:confirmado?"#7cb9ff":"#f87171",textAlign:"center"}}>
-            {confirmado ? "✓ ¡Confirmado! Nos vemos el viernes 🙌" : "❌ No pudiste confirmar para este partido"}
-          </div>
-        )}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          <button onClick={()=>setConfirmado(true)} style={{padding:"10px",borderRadius:10,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:700,fontSize:13,background:confirmado?"#2563eb":"rgba(30,80,212,0.15)",color:confirmado?"#fff":"#2563eb",border:confirmado?"1px solid #2563eb":"1px solid rgba(30,80,212,0.3)",transition:"all 0.2s"}}>
+            {confirmado?"✓ Confirmado":"Confirmar"}
+          </button>
+          <button onClick={()=>setConfirmado(false)} style={{padding:"10px",borderRadius:10,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:700,fontSize:13,background:(!confirmado&&confirmado!==null)?"rgba(239,68,68,0.12)":"rgba(255,255,255,0.04)",color:(!confirmado&&confirmado!==null)?"#f87171":"rgba(255,255,255,0.35)",border:(!confirmado&&confirmado!==null)?"1px solid rgba(239,68,68,0.25)":"1px solid rgba(255,255,255,0.08)",transition:"all 0.2s"}}>
+            No puedo
+          </button>
+        </div>
       </div>
 
       {/* Votación pendiente */}
@@ -1035,152 +929,96 @@ function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick }
 }
 
 /* ─────────────────────────────────────────
-   PAGE: TEMPORADA — Historial de partidos
+   PAGE: TEMPORADA
 ───────────────────────────────────────── */
-function PageTemporada({ user, stats, partido, votos, onVotar, onPlayerClick }) {
-  const [partidos, setPartidos] = useState([]);
-  const [loadingPartidos, setLoadingPartidos] = useState(true);
+function PageTemporada({ user, stats, onPlayerClick }) {
+  const [vista, setVista] = useState("mensual");
+  const [tabla, setTabla] = useState("jugadores");
+  const sorted = [...stats].sort((a,b)=>vista==="mensual"?b.puntosMes-a.puntosMes:b.puntosAnio-a.puntosAnio);
 
-  useEffect(() => {
-    supabase.from("partidos").select("*").order("created_at", { ascending: false }).then(({ data }) => {
-      if (data) setPartidos(data.map(p => ({
-        ...p,
-        equipoA: p.equipo_a || [],
-        equipoB: p.equipo_b || [],
-      })));
-      setLoadingPartidos(false);
-    });
-  }, []);
+  // Tabla de equipos del fulbito (simulada por ahora)
+  const equiposFulbito = [
+    { nombre:"Los Pibes FC", pj:8, pg:5, pe:1, pp:2, pts:16 },
+    { nombre:"Al-Koliko FC", pj:8, pg:4, pe:2, pp:2, pts:14 },
+    { nombre:"Los Cracks", pj:8, pg:3, pe:3, pp:2, pts:12 },
+    { nombre:"El Equipo", pj:8, pg:2, pe:2, pp:4, pts:8 },
+  ].sort((a,b)=>b.pts-a.pts);
 
-  const yoVotePorPartido = (p) => (votos || []).some(v => v.partido_id === p.id && v.votante_id === user.id);
-
-  const getResultadoEquipo = (p, lado) => {
-    const equipo = lado === "A" ? (p.equipoA || []) : (p.equipoB || []);
-    const golesA = p.goles_a ?? null;
-    const golesB = p.goles_b ?? null;
-    if (golesA === null || golesB === null) return null;
-    return lado === "A" ? golesA : golesB;
-  };
-
-  const getNombreEquipo = (p, lado) => {
-    const nombre = lado === "A" ? p.nombre_equipo_a : p.nombre_equipo_b;
-    if (nombre) return nombre;
-    const ids = lado === "A" ? (p.equipoA || []) : (p.equipoB || []);
-    if (ids.length === 0) return `Equipo ${lado}`;
-    const cap = stats.find(s => s.id === ids[0]);
-    return cap ? `Equipo ${cap.nombre}` : `Equipo ${lado}`;
-  };
-
-  if (loadingPartidos) return (
-    <div className="fade-up" style={{textAlign:"center",padding:"48px 0",color:"rgba(255,255,255,0.3)"}}>
-      <div style={{fontSize:28,marginBottom:8}}>⏳</div>
-      <div>Cargando historial...</div>
-    </div>
-  );
-
-  if (partidos.length === 0) return (
-    <div className="fade-up" style={{textAlign:"center",padding:"48px 0",color:"rgba(255,255,255,0.3)"}}>
-      <div style={{fontSize:40,marginBottom:10}}>📅</div>
-      <div style={{fontWeight:700,fontSize:16,marginBottom:4}}>Sin partidos registrados</div>
-      <div style={{fontSize:13}}>Los partidos van a aparecer acá cuando un admin los cargue</div>
-    </div>
-  );
-
-  return (
+  return(
     <div className="fade-up">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-        <div>
-          <div style={{fontFamily:"'Bebas Neue'",fontSize:26,letterSpacing:1}}>Historial</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>{partidos.length} partidos · Temporada 2025</div>
-        </div>
-        <div style={{background:"rgba(30,80,212,0.12)",border:"1px solid rgba(30,80,212,0.25)",borderRadius:10,padding:"6px 12px",textAlign:"center"}}>
-          <div style={{fontFamily:"'Bebas Neue'",fontSize:22,color:"#7cb9ff",lineHeight:1}}>{partidos.length}</div>
-          <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",fontWeight:600}}>PARTIDOS</div>
-        </div>
+      {/* Tabs principales */}
+      <div style={{display:"flex",background:"rgba(255,255,255,0.04)",borderRadius:10,padding:3,marginBottom:10,border:"1px solid rgba(255,255,255,0.07)"}}>
+        {[["jugadores","👤 Jugadores"],["equipos","🛡️ Equipos"]].map(([v,l])=>(
+          <button key={v} onClick={()=>setTabla(v)} style={{flex:1,padding:"8px 0",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:12,background:tabla===v?"linear-gradient(135deg,#1440b8,#2563eb)":"none",color:tabla===v?"#fff":"rgba(255,255,255,0.3)",transition:"all 0.2s"}}>{l}</button>
+        ))}
       </div>
 
-      {partidos.map((p, i) => {
-        const yoVote = yoVotePorPartido(p);
-        const golesA = p.goles_a ?? null;
-        const golesB = p.goles_b ?? null;
-        const hayResultado = golesA !== null && golesB !== null;
-        const hayVotacion = p.votacion_activa;
-        const nombreA = getNombreEquipo(p, "A");
-        const nombreB = getNombreEquipo(p, "B");
-        const esUltimo = i === 0;
+      {tabla==="jugadores" && (<>
+        {/* Tabs semanal/mensual/anual */}
+        <div style={{display:"flex",gap:6,marginBottom:10}}>
+          {[["semanal","Semana"],["mensual","Mes"],["anual","Año"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setVista(v)} style={{padding:"5px 12px",borderRadius:99,border:"none",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:600,fontSize:11,background:vista===v?"rgba(30,80,212,0.3)":"rgba(255,255,255,0.05)",color:vista===v?"#7cb9ff":"rgba(255,255,255,0.35)",border:vista===v?"1px solid rgba(30,80,212,0.4)":"1px solid rgba(255,255,255,0.08)",transition:"all 0.2s"}}>{l}</button>
+          ))}
+        </div>
 
-        return (
-          <div key={p.id} style={{
-            background: esUltimo ? "rgba(30,80,212,0.06)" : "rgba(255,255,255,0.025)",
-            border: esUltimo ? "1px solid rgba(30,80,212,0.2)" : "1px solid rgba(255,255,255,0.07)",
-            borderRadius:16, padding:14, marginBottom:10,
-            position:"relative", overflow:"hidden",
+        <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.3)",marginBottom:8}}>
+          {vista==="semanal"?"Esta semana":vista==="mensual"?"Mayo 2025":"Temporada 2025"} — Tabla de puntos
+        </div>
+
+        {/* Header tabla */}
+        <div style={{display:"flex",alignItems:"center",padding:"4px 14px",marginBottom:4}}>
+          <span style={{width:22,fontSize:10,color:"rgba(255,255,255,0.25)",fontWeight:700}}>#</span>
+          <span style={{flex:1,fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1,marginLeft:42}}>JUGADOR</span>
+          {["PJ","PTS","MVPs"].map(k=><span key={k} style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1,width:36,textAlign:"center"}}>{k}</span>)}
+        </div>
+
+        {sorted.map((j,i)=>(
+          <div key={j.id} className="card-tap" onClick={()=>onPlayerClick(j)} style={{
+            display:"flex",alignItems:"center",padding:"10px 14px",
+            background:j.id===user.id?"rgba(30,80,212,0.08)":"rgba(255,255,255,0.02)",
+            border:j.id===user.id?"1px solid rgba(30,80,212,0.18)":"1px solid rgba(255,255,255,0.06)",
+            borderRadius:12,marginBottom:6,cursor:"pointer",transition:"all 0.2s",
           }}>
-            {esUltimo && (
-              <div style={{position:"absolute",top:10,right:12,fontSize:9,fontWeight:700,letterSpacing:1.5,color:"#7cb9ff",background:"rgba(30,80,212,0.15)",padding:"2px 8px",borderRadius:99,border:"1px solid rgba(30,80,212,0.3)"}}>
-                ÚLTIMO
+            <span style={{fontFamily:"'Bebas Neue'",fontSize:16,color:i<3?"#c9a84c":"rgba(255,255,255,0.2)",width:22,textAlign:"center"}}>
+              {i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}
+            </span>
+            <Av j={j} size={30}/>
+            <div style={{flex:1,marginLeft:10}}>
+              <div style={{fontWeight:700,fontSize:14,display:"flex",alignItems:"center",gap:6}}>
+                {j.nombre}
+                {j.id===user.id&&<span style={{fontSize:9,padding:"1px 6px",borderRadius:4,background:"rgba(30,80,212,0.15)",color:"#7cb9ff",border:"1px solid rgba(30,80,212,0.25)",fontWeight:600}}>vos</span>}
               </div>
-            )}
-
-            {/* Info partido */}
-            <div style={{fontSize:10,fontWeight:700,letterSpacing:1,color:"rgba(255,255,255,0.3)",marginBottom:6}}>
-              {p.fecha} · {p.cancha}
+              <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{j.apodo}</div>
             </div>
-
-            {/* Marcador / VS */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:6,alignItems:"center",marginBottom:12}}>
-              {/* Equipo A */}
-              <div>
-                <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#2563eb",marginBottom:4}}>EQUIPO A</div>
-                <div style={{fontWeight:800,fontSize:13,color:"#fff",marginBottom:6,lineHeight:1.2}}>{nombreA}</div>
-                <div style={{display:"flex",gap:-4}}>
-                  {(p.equipoA||[]).slice(0,4).map((id,idx)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:idx>0?-6:0}}><Av j={j} size={22} border/></div>:null; })}
-                  {(p.equipoA||[]).length>4&&<div style={{marginLeft:-6,width:22,height:22,borderRadius:"50%",background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:700}}>+{(p.equipoA||[]).length-4}</div>}
-                </div>
-              </div>
-
-              {/* Marcador */}
-              <div style={{textAlign:"center",minWidth:60}}>
-                {hayResultado ? (
-                  <div style={{fontFamily:"'Bebas Neue'",fontSize:32,color:"#fff",lineHeight:1,letterSpacing:2}}>
-                    <span style={{color:golesA>golesB?"#4ade80":golesA===golesB?"#fbbf24":"rgba(255,255,255,0.5)"}}>{golesA}</span>
-                    <span style={{color:"rgba(255,255,255,0.2)",margin:"0 2px"}}>-</span>
-                    <span style={{color:golesB>golesA?"#4ade80":golesA===golesB?"#fbbf24":"rgba(255,255,255,0.5)"}}>{golesB}</span>
-                  </div>
-                ) : (
-                  <div style={{fontFamily:"'Bebas Neue'",fontSize:20,color:"rgba(255,255,255,0.2)"}}>VS</div>
-                )}
-                <div style={{fontSize:9,color:"rgba(255,255,255,0.25)",marginTop:2}}>{p.hora} hs</div>
-              </div>
-
-              {/* Equipo B */}
-              <div style={{textAlign:"right"}}>
-                <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#ef4444",marginBottom:4,textAlign:"right"}}>EQUIPO B</div>
-                <div style={{fontWeight:800,fontSize:13,color:"#fff",marginBottom:6,lineHeight:1.2,textAlign:"right"}}>{nombreB}</div>
-                <div style={{display:"flex",justifyContent:"flex-end",gap:-4}}>
-                  {(p.equipoB||[]).slice(0,4).map((id,idx)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:idx>0?-6:0}}><Av j={j} size={22} border/></div>:null; })}
-                  {(p.equipoB||[]).length>4&&<div style={{marginLeft:-6,width:22,height:22,borderRadius:"50%",background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:700}}>+{(p.equipoB||[]).length-4}</div>}
-                </div>
-              </div>
+            <div style={{display:"flex",gap:4}}>
+              {[j.pj, vista==="anual"?j.puntosAnio:j.puntosMes, j.mvps].map((v,k)=>(
+                <div key={k} style={{fontFamily:"'Bebas Neue'",fontSize:k===1?20:15,color:k===1?"#2563eb":"rgba(255,255,255,0.4)",width:36,textAlign:"center"}}>{v}</div>
+              ))}
             </div>
-
-            {/* Estado votación */}
-            {hayVotacion && !yoVote && (
-              <button onClick={onVotar} style={{width:"100%",padding:"10px",borderRadius:10,border:"1px solid rgba(234,179,8,0.3)",cursor:"pointer",background:"rgba(234,179,8,0.08)",color:"#fbbf24",fontFamily:"'Outfit'",fontWeight:700,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-                🪙 Votar en este partido →
-              </button>
-            )}
-            {yoVote && (
-              <div style={{fontSize:12,color:"#4ade80",fontWeight:600,display:"flex",alignItems:"center",gap:6,padding:"6px 0"}}>
-                ✅ Ya votaste en este partido
-              </div>
-            )}
-            {!hayVotacion && !hayResultado && (
-              <div style={{fontSize:11,color:"rgba(255,255,255,0.2)",fontStyle:"italic"}}>Resultado pendiente</div>
-            )}
           </div>
-        );
-      })}
+        ))}
+      </>)}
+
+      {tabla==="equipos" && (<>
+        <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.3)",marginBottom:10}}>Temporada 2025 — Liga interna</div>
+
+        {/* Header tabla equipos */}
+        <div style={{display:"flex",padding:"4px 14px",marginBottom:4}}>
+          <span style={{flex:1,fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1}}>EQUIPO</span>
+          {["PJ","PG","PE","PP","PTS"].map(k=><span key={k} style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",width:28,textAlign:"center"}}>{k}</span>)}
+        </div>
+
+        {equiposFulbito.map((eq,i)=>(
+          <div key={eq.nombre} style={{display:"flex",alignItems:"center",padding:"11px 14px",background:i===0?"rgba(201,168,76,0.06)":"rgba(255,255,255,0.02)",border:i===0?"1px solid rgba(201,168,76,0.2)":"1px solid rgba(255,255,255,0.06)",borderRadius:12,marginBottom:6}}>
+            <span style={{fontFamily:"'Bebas Neue'",fontSize:15,color:i<3?"#c9a84c":"rgba(255,255,255,0.2)",width:22,textAlign:"center"}}>{i+1}</span>
+            <div style={{width:30,height:30,borderRadius:8,background:"rgba(30,80,212,0.15)",border:"1px solid rgba(30,80,212,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,marginLeft:4,marginRight:10}}>🛡️</div>
+            <span style={{flex:1,fontWeight:700,fontSize:13}}>{eq.nombre}</span>
+            {[eq.pj,eq.pg,eq.pe,eq.pp,eq.pts].map((v,k)=>(
+              <div key={k} style={{fontFamily:"'Bebas Neue'",fontSize:k===4?18:13,color:k===4?"#2563eb":"rgba(255,255,255,0.4)",width:28,textAlign:"center"}}>{v}</div>
+            ))}
+          </div>
+        ))}
+      </>)}
     </div>
   );
 }
@@ -1188,8 +1026,7 @@ function PageTemporada({ user, stats, partido, votos, onVotar, onPlayerClick }) 
 /* ─────────────────────────────────────────
    PAGE: 5 IDEAL
 ───────────────────────────────────────── */
-function PageCincoIdeal({ stats, onPlayerClick, isAdmin, user }) {
-  const [cardFullscreen, setCardFullscreen] = useState(null);
+function PageCincoIdeal({ stats, onPlayerClick }) {
   const [periodo, setPeriodo] = useState("mes");
   const sorted = [...stats].sort((a,b)=>periodo==="anio"?b.puntosAnio-a.puntosAnio:b.puntosMes-a.puntosMes);
   const top5 = sorted.slice(0,5);
@@ -1222,7 +1059,7 @@ function PageCincoIdeal({ stats, onPlayerClick, isAdmin, user }) {
           <div key={row} style={{display:"flex",justifyContent:"space-around",marginBottom:row<2?16:0,position:"relative",zIndex:1}}>
             {[a,b].filter(x=>x!==undefined).map(idx=>{ const j=top5[idx]; if(!j) return null;
               return(
-                <div key={j.id} onClick={()=>setCardFullscreen(j)} className="card-tap" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,cursor:"pointer"}}>
+                <div key={j.id} onClick={()=>onPlayerClick(j)} className="card-tap" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,cursor:"pointer"}}>
                   <FiguritaSVG jugador={j} size={80}/>
                   <div style={{background:"rgba(0,0,0,0.7)",borderRadius:6,padding:"2px 8px",textAlign:"center",border:"1px solid rgba(255,255,255,0.1)"}}>
                     <div style={{fontWeight:700,fontSize:10,color:"#fff"}}>{j.nombre}</div>
@@ -1235,45 +1072,24 @@ function PageCincoIdeal({ stats, onPlayerClick, isAdmin, user }) {
         ))}
       </div>
 
-      {/* Ranking de jugadores */}
+      {/* Ranking completo */}
       <Lbl style={{marginBottom:8}}>Ranking {periodo==="semana"?"de la semana":periodo==="mes"?"del mes":"del año"}</Lbl>
-
-      {/* Header tabla */}
-      <div style={{display:"flex",alignItems:"center",padding:"4px 14px",marginBottom:4}}>
-        <span style={{width:22,fontSize:10,color:"rgba(255,255,255,0.25)",fontWeight:700}}>#</span>
-        <span style={{flex:1,fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1,marginLeft:42}}>JUGADOR</span>
-        {["PJ","PTS","MVPs"].map(k=><span key={k} style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.25)",letterSpacing:1,width:36,textAlign:"center"}}>{k}</span>)}
-      </div>
-
       {sorted.map((j,i)=>(
-        <div key={j.id} className="card-tap" onClick={()=>setCardFullscreen(j)} style={{
-          display:"flex",alignItems:"center",padding:"10px 14px",
-          background:user && j.id===user.id?"rgba(30,80,212,0.08)":i<5?"rgba(30,80,212,0.03)":"rgba(255,255,255,0.02)",
-          border:user && j.id===user.id?"1px solid rgba(30,80,212,0.18)":i<5?"1px solid rgba(30,80,212,0.1)":"1px solid rgba(255,255,255,0.06)",
-          borderRadius:12,marginBottom:6,cursor:"pointer",transition:"all 0.2s",
-        }}>
-          <span style={{fontFamily:"'Bebas Neue'",fontSize:16,color:i<3?"#c9a84c":i<5?"#7cb9ff":"rgba(255,255,255,0.2)",width:22,textAlign:"center"}}>
-            {i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}
-          </span>
-          <Av j={j} size={30}/>
-          <div style={{flex:1,marginLeft:10}}>
-            <div style={{fontWeight:700,fontSize:14,display:"flex",alignItems:"center",gap:6}}>
-              {j.nombre}
-              {user && j.id===user.id&&<span style={{fontSize:9,padding:"1px 6px",borderRadius:4,background:"rgba(30,80,212,0.15)",color:"#7cb9ff",border:"1px solid rgba(30,80,212,0.25)",fontWeight:600}}>vos</span>}
-            </div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{j.apodo}</div>
+        <div key={j.id} onClick={()=>onPlayerClick(j)} className="card-tap" style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:i<5?"rgba(30,80,212,0.05)":"rgba(255,255,255,0.02)",border:i<5?"1px solid rgba(30,80,212,0.12)":"1px solid rgba(255,255,255,0.06)",borderRadius:10,marginBottom:6}}>
+          <span style={{fontFamily:"'Bebas Neue'",fontSize:14,color:i<3?"#c9a84c":i<5?"#7cb9ff":"rgba(255,255,255,0.2)",width:18,textAlign:"center"}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
+          <Av j={j} size={28}/>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:600,fontSize:13}}>{j.nombre}</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>{j.apodo}</div>
           </div>
-          <div style={{display:"flex",gap:4}}>
-            {[j.pj, periodo==="anio"?j.puntosAnio:j.puntosMes, j.mvps].map((v,k)=>(
-              <div key={k} style={{fontFamily:"'Bebas Neue'",fontSize:k===1?20:15,color:k===1?"#2563eb":"rgba(255,255,255,0.4)",width:36,textAlign:"center"}}>{v}</div>
-            ))}
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{height:4,width:60,background:"rgba(255,255,255,0.08)",borderRadius:99,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${((periodo==="anio"?j.puntosAnio:j.puntosMes)/maxPts)*100}%`,background:i<5?"#2563eb":"rgba(255,255,255,0.2)",borderRadius:99}}/>
+            </div>
+            <span style={{fontFamily:"'Bebas Neue'",fontSize:17,color:i<5?"#7cb9ff":"rgba(255,255,255,0.4)",width:32,textAlign:"right"}}>{periodo==="anio"?j.puntosAnio:j.puntosMes}</span>
           </div>
         </div>
       ))}
-
-      {cardFullscreen && (
-        <ModalCardFullscreen jugador={cardFullscreen} isAdmin={isAdmin} onClose={()=>setCardFullscreen(null)}/>
-      )}
     </div>
   );
 }
@@ -1473,345 +1289,6 @@ function PageCards({ user, stats }) {
   );
 }
 
-
-/* ─────────────────────────────────────────
-   TAB MI PERFIL (editable por el propio usuario)
-───────────────────────────────────────── */
-function TabMiPerfil({ jugador, onSave }) {
-  const [form, setForm] = useState({
-    apodo: jugador.apodo || "",
-    ciudad: jugador.ciudad || "",
-    celular: jugador.celular || "",
-    equipoArg: jugador.equipoArg || "",
-    ligaEu: jugador.ligaEu || "",
-    equipoEu: jugador.equipoEu || "",
-  });
-  const [newPass, setNewPass] = useState("");
-  const [saved, setSaved] = useState(false);
-
-  const equiposEu = LIGAS_EU[form.ligaEu] || [];
-
-  const handleSave = async () => {
-    const updates = {
-      apodo: form.apodo,
-      ciudad: form.ciudad,
-      celular: form.celular,
-      equipo_arg: form.equipoArg,
-      liga_eu: form.ligaEu,
-      equipo_eu: form.equipoEu,
-    };
-    await supabase.from("jugadores").update(updates).eq("id", jugador.id);
-    if (newPass.trim().length >= 6) {
-      await supabase.auth.updateUser({ password: newPass.trim() });
-    }
-    if (onSave) onSave({ ...jugador, ...form, equipoArg: form.equipoArg, ligaEu: form.ligaEu, equipoEu: form.equipoEu });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
-
-  return (
-    <div className="fade-in" style={{display:"flex",flexDirection:"column",gap:12}}>
-      <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"10px 14px",marginBottom:4}}>
-        <div style={{fontSize:10,fontWeight:700,letterSpacing:1,color:"rgba(255,255,255,0.3)",marginBottom:2}}>NOMBRE Y APELLIDO</div>
-        <div style={{fontWeight:700,fontSize:15}}>{jugador.nombre} {jugador.apellido}</div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>No se puede editar</div>
-      </div>
-
-      <div><Lbl>Apodo futbolero</Lbl>
-        <input className="ucl-input" value={form.apodo} onChange={e=>setForm(p=>({...p,apodo:e.target.value}))} placeholder="Tu apodo"/>
-      </div>
-      <div><Lbl>Domicilio / Barrio</Lbl>
-        <input className="ucl-input" value={form.ciudad} onChange={e=>setForm(p=>({...p,ciudad:e.target.value}))} placeholder="Tu barrio o ciudad"/>
-      </div>
-      <div><Lbl>Celular</Lbl>
-        <input className="ucl-input" value={form.celular} onChange={e=>setForm(p=>({...p,celular:e.target.value}))} placeholder="+54 11 ..." type="tel"/>
-      </div>
-      <div><Lbl>🇦🇷 Club argentino favorito</Lbl>
-        <select className="ucl-input" value={form.equipoArg} onChange={e=>setForm(p=>({...p,equipoArg:e.target.value}))}>
-          <option value="">— Seleccioná —</option>
-          {EQUIPOS_ARG.map(eq=><option key={eq} value={eq}>{eq}</option>)}
-        </select>
-      </div>
-      <div><Lbl>🌍 Liga europea</Lbl>
-        <select className="ucl-input" value={form.ligaEu} onChange={e=>setForm(p=>({...p,ligaEu:e.target.value,equipoEu:""}))}>
-          <option value="">— Seleccioná liga —</option>
-          {Object.keys(LIGAS_EU).map(l=><option key={l} value={l}>{l}</option>)}
-        </select>
-      </div>
-      {form.ligaEu && (
-        <div><Lbl>🏟️ Club europeo ({form.ligaEu})</Lbl>
-          <select className="ucl-input" value={form.equipoEu} onChange={e=>setForm(p=>({...p,equipoEu:e.target.value}))}>
-            <option value="">— Seleccioná club —</option>
-            {equiposEu.map(eq=><option key={eq} value={eq}>{eq}</option>)}
-          </select>
-        </div>
-      )}
-      <div><Lbl>Nueva contraseña (opcional, mín. 6 caracteres)</Lbl>
-        <input className="ucl-input" type="password" value={newPass} onChange={e=>setNewPass(e.target.value)} placeholder="Dejá vacío para no cambiar"/>
-      </div>
-      <BtnGreen onClick={handleSave}>💾 Guardar cambios</BtnGreen>
-      {saved && (
-        <div style={{background:"#16a34a",color:"#fff",borderRadius:10,padding:"10px 14px",fontSize:14,fontWeight:700,textAlign:"center"}}>
-          ✅ ¡Perfil actualizado!
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   TABLA EQUIPOS CON VOTACIÓN REAL
-───────────────────────────────────────── */
-function TablaEquiposConVotacion({ partido, votos, stats, user, onVotar }) {
-  if (!partido) return (
-    <div style={{textAlign:"center",padding:"40px 0",color:"rgba(255,255,255,0.3)"}}>
-      <div style={{fontSize:32,marginBottom:8}}>📅</div>
-      <div>No hay partidos registrados aún</div>
-    </div>
-  );
-
-  const equipoA = (partido.equipoA || partido.equipo_a || []).map(id => stats.find(s=>s.id===id)).filter(Boolean);
-  const equipoB = (partido.equipoB || partido.equipo_b || []).map(id => stats.find(s=>s.id===id)).filter(Boolean);
-  const yoVote = votos?.some(v => v.partido_id === partido.id && v.votante_id === user.id);
-  const votacionActiva = partido.votacion_activa;
-
-  const votosPorJugador = {};
-  (votos || []).filter(v => v.partido_id === partido.id).forEach(v => {
-    votosPorJugador[v.votado_id] = (votosPorJugador[v.votado_id] || 0) + v.monedas;
-  });
-
-  return (
-    <div>
-      <div style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.3)",marginBottom:10}}>
-        {partido.fecha} · {partido.cancha}
-      </div>
-
-      {/* Botón votar */}
-      {votacionActiva && !yoVote && (
-        <div style={{background:"rgba(234,179,8,0.08)",border:"1px solid rgba(234,179,8,0.25)",borderRadius:14,padding:14,marginBottom:14,display:"flex",alignItems:"center",gap:12}}>
-          <span style={{fontSize:24}}>🪙</span>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#fbbf24"}}>¡Votación abierta!</div>
-            <div style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Repartí tus 10 monedas entre los jugadores</div>
-          </div>
-          <button onClick={onVotar} style={{padding:"8px 16px",borderRadius:10,border:"none",cursor:"pointer",background:"#eab308",color:"#000",fontFamily:"'Outfit'",fontWeight:700,fontSize:13}}>Votar →</button>
-        </div>
-      )}
-      {yoVote && (
-        <div style={{background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)",borderRadius:12,padding:"10px 14px",marginBottom:14,fontSize:13,color:"#4ade80",fontWeight:600}}>
-          ✅ Ya votaste en este partido
-        </div>
-      )}
-
-      {/* VS */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:8,alignItems:"start",marginBottom:14}}>
-        <div>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#2563eb",marginBottom:8}}>EQUIPO A</div>
-          {equipoA.map(j=>(
-            <div key={j.id} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-              <Av j={j} size={24}/>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:600,fontSize:12}}>{j.nombre}</div>
-                {votosPorJugador[j.id] > 0 && <div style={{fontSize:10,color:"#fbbf24"}}>🪙 {votosPorJugador[j.id]}</div>}
-              </div>
-            </div>
-          ))}
-          {equipoA.length === 0 && <div style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>Sin jugadores</div>}
-        </div>
-        <div style={{fontFamily:"'Bebas Neue'",fontSize:22,color:"rgba(255,255,255,0.2)",paddingTop:20}}>VS</div>
-        <div>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#ef4444",marginBottom:8}}>EQUIPO B</div>
-          {equipoB.map(j=>(
-            <div key={j.id} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-              <Av j={j} size={24}/>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:600,fontSize:12}}>{j.nombre}</div>
-                {votosPorJugador[j.id] > 0 && <div style={{fontSize:10,color:"#fbbf24"}}>🪙 {votosPorJugador[j.id]}</div>}
-              </div>
-            </div>
-          ))}
-          {equipoB.length === 0 && <div style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>Sin jugadores</div>}
-        </div>
-      </div>
-
-      {/* Top votados */}
-      {Object.keys(votosPorJugador).length > 0 && (
-        <div style={{background:"rgba(201,168,76,0.05)",border:"1px solid rgba(201,168,76,0.15)",borderRadius:12,padding:14}}>
-          <Lbl style={{marginBottom:8}}>⭐ Top votados del partido</Lbl>
-          {Object.entries(votosPorJugador).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([id,mon],i)=>{
-            const j = stats.find(s=>s.id===id);
-            return (
-              <div key={id} style={{display:"flex",alignItems:"center",gap:8,padding:"5px 0"}}>
-                <span style={{fontFamily:"'Bebas Neue'",fontSize:14,color:i===0?"#c9a84c":i===1?"#b0b0cc":i===2?"#c09060":"rgba(255,255,255,0.2)",width:18}}>{i+1}</span>
-                <Av j={j} size={22}/>
-                <span style={{flex:1,fontSize:12,fontWeight:600}}>{j?.nombre} {j?.apellido}</span>
-                <span style={{fontSize:12,color:"#fbbf24",fontWeight:700}}>🪙 {mon}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   MODAL VOTACIÓN (cancha 5vs5 + monedas)
-───────────────────────────────────────── */
-function ModalVotacion({ partido, stats, user, votos, onClose, onVotado }) {
-  const equipoA = (partido.equipoA || partido.equipo_a || []).map(id => stats.find(s=>s.id===id)).filter(Boolean);
-  const equipoB = (partido.equipoB || partido.equipo_b || []).map(id => stats.find(s=>s.id===id)).filter(Boolean);
-  const todos = [...equipoA, ...equipoB];
-
-  const [monedas, setMonedas] = useState(() => {
-    const m = {};
-    todos.forEach(j => { m[j.id] = 0; });
-    return m;
-  });
-
-  const TOTAL = 10;
-  const usado = Object.values(monedas).reduce((a,b)=>a+b,0);
-  const restantes = TOTAL - usado;
-
-  const cambiar = (id, delta) => {
-    setMonedas(prev => {
-      const actual = prev[id] || 0;
-      const nuevo = actual + delta;
-      if (nuevo < 0) return prev;
-      if (delta > 0 && restantes <= 0) return prev;
-      return { ...prev, [id]: nuevo };
-    });
-  };
-
-  const confirmar = async () => {
-    await supabase.from("votos").delete().eq("partido_id", partido.id).eq("votante_id", user.id);
-    const rows = Object.entries(monedas).filter(([,m])=>m>0).map(([votado_id, mon])=>({
-      partido_id: partido.id, votante_id: user.id, votado_id, monedas: mon
-    }));
-    if (rows.length > 0) await supabase.from("votos").insert(rows);
-    if (onVotado) onVotado();
-    onClose();
-  };
-
-  const posA = [[50,75],[50,175],[50,275],[50,375],[50,475]];
-  const posB = [[250,75],[250,175],[250,275],[250,375],[250,475]];
-
-  return (
-    <div className="fade-in" style={{position:"fixed",inset:0,zIndex:600,background:"rgba(0,0,0,0.95)",display:"flex",flexDirection:"column"}}>
-      {/* Header */}
-      <div style={{padding:"14px 16px",background:"#0a1020",borderBottom:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-        <div>
-          <div style={{fontFamily:"'Bebas Neue'",fontSize:20,letterSpacing:1}}>🪙 Repartí tus monedas</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Total: 10 monedas · No podés votarte a vos mismo</div>
-        </div>
-        <div style={{textAlign:"center"}}>
-          <div style={{fontFamily:"'Bebas Neue'",fontSize:32,color:restantes>0?"#fbbf24":"#4ade80",lineHeight:1}}>{restantes}</div>
-          <div style={{fontSize:9,color:"rgba(255,255,255,0.3)"}}>restantes</div>
-        </div>
-      </div>
-
-      {/* Cancha SVG con cards */}
-      <div style={{flex:1,overflowY:"auto",padding:16}}>
-        {/* Cancha visual */}
-        <div style={{background:"linear-gradient(180deg,#071a0a,#0a2a10,#071a0a)",borderRadius:14,padding:16,marginBottom:16,border:"1px solid rgba(34,197,94,0.12)"}}>
-          <div style={{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:8,alignItems:"center",marginBottom:8}}>
-            <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#2563eb"}}>EQUIPO A</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,0.2)",fontFamily:"'Bebas Neue'",fontSize:18}}>VS</div>
-            <div style={{fontSize:10,fontWeight:700,letterSpacing:2,color:"#ef4444",textAlign:"right"}}>EQUIPO B</div>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-            {[equipoA, equipoB].map((equipo, lado) =>
-              equipo.map(j => {
-                const esYo = j.id === user.id;
-                return (
-                  <div key={j.id} style={{background:esYo?"rgba(255,255,255,0.03)":lado===0?"rgba(30,80,212,0.08)":"rgba(239,68,68,0.08)",border:esYo?"1px dashed rgba(255,255,255,0.1)":lado===0?"1px solid rgba(30,80,212,0.2)":"1px solid rgba(239,68,68,0.2)",borderRadius:12,padding:"10px 12px",opacity:esYo?0.5:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:esYo?0:8}}>
-                      <Av j={j} size={30}/>
-                      <div style={{flex:1}}>
-                        <div style={{fontWeight:700,fontSize:12}}>{j.nombre}</div>
-                        <div style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>{j.posicion}{esYo?" · No podés votarte":""}</div>
-                      </div>
-                    </div>
-                    {!esYo && (
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:6}}>
-                        <button onClick={()=>cambiar(j.id,-1)} disabled={!monedas[j.id]} style={{width:28,height:28,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.06)",color:"white",cursor:"pointer",fontSize:16,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",opacity:monedas[j.id]?1:0.3}}>−</button>
-                        <div style={{fontFamily:"'Bebas Neue'",fontSize:22,color:monedas[j.id]>0?"#fbbf24":"rgba(255,255,255,0.3)",minWidth:28,textAlign:"center"}}>{monedas[j.id]||0}</div>
-                        <button onClick={()=>cambiar(j.id,1)} disabled={restantes<=0} style={{width:28,height:28,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.06)",color:"white",cursor:"pointer",fontSize:16,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center",opacity:restantes>0?1:0.3}}>+</button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div style={{padding:16,background:"#0a1020",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",gap:10,flexShrink:0}}>
-        <BtnOutline onClick={onClose} style={{flex:1}}>Cancelar</BtnOutline>
-        <BtnGreen onClick={confirmar} style={{flex:2}}>🪙 Confirmar voto ({usado}/{TOTAL} monedas)</BtnGreen>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────
-   MODAL CARD FULLSCREEN
-───────────────────────────────────────── */
-function ModalCardFullscreen({ jugador, isAdmin, onClose, onEdit }) {
-  return (
-    <div className="fade-in" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}} style={{position:"fixed",inset:0,zIndex:700,background:"rgba(0,0,0,0.96)",backdropFilter:"blur(20px)",display:"flex",flexDirection:"column",alignItems:"center",overflowY:"auto"}}>
-      {/* Barra superior */}
-      <div style={{width:"100%",maxWidth:520,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 16px 0",flexShrink:0}}>
-        <button onClick={onClose} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(255,255,255,0.7)",width:36,height:36,borderRadius:"50%",cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>←</button>
-        <div style={{fontFamily:"'Bebas Neue'",fontSize:14,letterSpacing:2,color:"rgba(255,255,255,0.3)"}}>AL-KOLIKO FC · 2025</div>
-        {isAdmin ? (
-          <button onClick={()=>{ onClose(); if(onEdit) onEdit(jugador); }} style={{background:"rgba(30,80,212,0.2)",border:"1px solid rgba(30,80,212,0.4)",color:"#7cb9ff",padding:"7px 14px",borderRadius:10,cursor:"pointer",fontFamily:"'Outfit'",fontWeight:700,fontSize:12,display:"flex",alignItems:"center",gap:5}}>
-            ✏️ Editar
-          </button>
-        ) : <div style={{width:36}}/>}
-      </div>
-
-      {/* Card grande centrada */}
-      <div style={{display:"flex",justifyContent:"center",padding:"20px 0 8px",flexShrink:0}}>
-        <FiguritaSVG jugador={jugador} size={240}/>
-      </div>
-
-      {/* Info completa */}
-      <div style={{width:"100%",maxWidth:400,padding:"0 16px 40px",flexShrink:0}}>
-        <div style={{textAlign:"center",marginBottom:16}}>
-          <div style={{fontWeight:900,fontSize:22,color:"#fff"}}>{jugador.nombre} {jugador.apellido}</div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,0.35)",marginTop:2}}>{jugador.apodo}</div>
-          <div style={{display:"flex",gap:6,justifyContent:"center",marginTop:8,flexWrap:"wrap"}}>
-            <span style={{fontSize:10,padding:"2px 10px",borderRadius:99,background:"rgba(30,80,212,0.15)",color:"#4ade80",border:"1px solid rgba(30,80,212,0.25)",fontWeight:600}}>{jugador.posicion}</span>
-            <span style={{fontSize:10,padding:"2px 10px",borderRadius:99,background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)",fontWeight:600}}>#{jugador.numero}</span>
-            <span style={{fontSize:10,padding:"2px 10px",borderRadius:99,background:RAREZA_CONFIG[jugador.rareza]?.glow?.replace("0.5","0.15")||"rgba(201,168,76,0.12)",color:RAREZA_CONFIG[jugador.rareza]?.border||"#c9a84c",border:`1px solid ${RAREZA_CONFIG[jugador.rareza]?.border||"#c9a84c"}44`,fontWeight:600}}>{jugador.rareza}</span>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8,marginBottom:14}}>
-          {[["⚽",jugador.goles,"Goles"],["🎯",jugador.asist,"Asist"],["👑",jugador.mvps,"MVPs"],["🎮",jugador.pj,"PJ"]].map(([icon,v,label])=>(
-            <div key={label} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"10px 6px",textAlign:"center"}}>
-              <div style={{fontSize:16,marginBottom:2}}>{icon}</div>
-              <div style={{fontFamily:"'Bebas Neue'",fontSize:22,color:"#7cb9ff",lineHeight:1}}>{v||0}</div>
-              <div style={{fontSize:9,fontWeight:600,color:"rgba(255,255,255,0.35)",marginTop:2}}>{label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:14}}>
-          <Lbl style={{marginBottom:10}}>Atributos</Lbl>
-          {[["Velocidad",jugador.stats?.velocidad,"#2563eb"],["Pase",jugador.stats?.pase,"#3b82f6"],["Defensa",jugador.stats?.defensa,"#f59e0b"],["Tiro",jugador.stats?.tiro,"#ef4444"],["Técnica",jugador.stats?.tecnica,"#8b5cf6"],["Resistencia",jugador.stats?.resistencia,"#06b6d4"]].map(([k,v,c])=>(
-            <StatBar key={k} label={k} value={v||0} color={c}/>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ─────────────────────────────────────────
    APP ROOT
 ───────────────────────────────────────── */
@@ -1883,23 +1360,13 @@ useEffect(() => {
 }, []);
 
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [cardFullscreen, setCardFullscreen] = useState(null);
-  const [votos, setVotos] = useState([]);
-  const [showVotacion, setShowVotacion] = useState(null);
 
-  useEffect(() => {
-    if (!partido?.id) return;
-    supabase.from("votos").select("*").eq("partido_id", partido.id).then(({ data }) => {
-      if (data) setVotos(data);
-    });
-  }, [partido?.id]);
 
   const handleLogin = (u) => { setLoggedUser(u); setTab(0); };
   const handleLogout = () => { setLoggedUser(null); localStorage.removeItem("fulbito-session"); };
   const handleRegister = (nu) => setUsers(prev=>[...prev, nu]);
 
-  // Click en jugador: si es mi propio perfil o admin quiere editar, abre PlayerModal; si no, abre ModalCardFullscreen
-  const handlePlayerClick = (j) => setCardFullscreen(j);
+  const handlePlayerClick = (j) => setSelectedPlayer(j);
   const handlePlayerSave = (updated) => {
     setUsers(prev=>prev.map(u=>u.id===updated.id?{...u,...updated}:u));
     setSelectedPlayer(prev=>prev?{...prev,...updated}:prev);
@@ -1919,46 +1386,14 @@ useEffect(() => {
     <>
       <style>{CSS}</style>
       <div style={{maxWidth:520,margin:"0 auto",minHeight:"100dvh",position:"relative"}}>
-        {/* Card fullscreen al hacer click en jugador */}
-        {cardFullscreen&&(
-          <ModalCardFullscreen
-            jugador={cardFullscreen}
-            isAdmin={loggedUser.isAdmin}
-            onClose={()=>setCardFullscreen(null)}
-            onEdit={(j)=>{ setSelectedPlayer(j); }}
-          />
-        )}
-        {/* PlayerModal para edición (admin) o mi propio perfil */}
         {selectedPlayer&&(
-          <PlayerModal
-            jugador={selectedPlayer}
-            onClose={()=>setSelectedPlayer(null)}
-            isAdmin={loggedUser.isAdmin}
-            isMiPerfil={selectedPlayer.id===loggedUser.id}
-            onSave={handlePlayerSave}
-            onSavePerfil={(updated)=>{
-              handlePlayerSave(updated);
-              setSelectedPlayer(null);
-            }}
-          />
+          <PlayerModal jugador={selectedPlayer} onClose={()=>setSelectedPlayer(null)} isAdmin={loggedUser.isAdmin} onSave={handlePlayerSave}/>
         )}
-        {showVotacion&&(
-          <ModalVotacion
-            partido={showVotacion}
-            stats={users}
-            user={loggedUser}
-            votos={votos}
-            onClose={()=>setShowVotacion(null)}
-            onVotado={()=>{
-              supabase.from("votos").select("*").eq("partido_id", showVotacion.id).then(({data})=>{if(data)setVotos(data);});
-            }}
-          />
-        )}
-        <Header user={loggedUser} onAdmin={()=>setShowAdmin(true)} onLogout={handleLogout} onProfile={()=>setSelectedPlayer(loggedUser)}/>
+        <Header user={loggedUser} onAdmin={()=>setShowAdmin(true)} onLogout={handleLogout} onProfile={()=>handlePlayerClick(loggedUser)}/>
         <div style={{padding:"14px 14px 82px",position:"relative",zIndex:1}}>
-          {tab===0&&<PageInicio user={loggedUser} partido={partido} setPartido={setPartido} stats={users} onVotar={()=>{setTab(1);}} onPlayerClick={handlePlayerClick}/>}
-          {tab===1&&<PageTemporada user={loggedUser} stats={users} partido={partido} votos={votos} onVotar={()=>setShowVotacion(partido)} onPlayerClick={handlePlayerClick}/>}
-          {tab===2&&<PageCincoIdeal stats={users} user={loggedUser} onPlayerClick={handlePlayerClick} isAdmin={loggedUser?.isAdmin}/>}
+          {tab===0&&<PageInicio user={loggedUser} partido={partido} stats={users} onVotar={()=>setTab(0)} onPlayerClick={handlePlayerClick}/>}
+          {tab===1&&<PageTemporada user={loggedUser} stats={users} onPlayerClick={handlePlayerClick}/>}
+          {tab===2&&<PageCincoIdeal stats={users} onPlayerClick={handlePlayerClick}/>}
           {tab===3&&<PageFeed user={loggedUser} stats={users} feed={feed} onFeedUpdate={setFeed}/>}
           {tab===4&&<PageCards user={loggedUser} stats={users}/>}
         </div>
