@@ -77,11 +77,11 @@ const EQUIPOS_ARG = [
 ];
 
 const LIGAS_EU = {
-  "Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿": ["Manchester City","Arsenal","Liverpool","Chelsea","Manchester United","Tottenham","Newcastle","Aston Villa","Brighton","West Ham"],
-  "La Liga 🇪🇸": ["Real Madrid","Barcelona","Atletico Madrid","Sevilla","Real Sociedad","Real Betis","Valencia","Villarreal","Athletic Bilbao","Osasuna"],
-  "Serie A 🇮🇹": ["Inter Milan","AC Milan","Juventus","Napoli","AS Roma","Lazio","Fiorentina","Atalanta","Bologna","Torino"],
-  "Bundesliga 🇩🇪": ["Bayern Munich","Borussia Dortmund","RB Leipzig","Bayer Leverkusen","Eintracht Frankfurt","Wolfsburg","Freiburg","Union Berlin","Hoffenheim","Stuttgart"],
-  "Ligue 1 🇫🇷": ["PSG","Marseille","Lyon","Monaco","Lille","Nice","Rennes","Lens","Strasbourg","Montpellier"],
+  "Premier League 🏴": ["Manchester City","Arsenal","Liverpool","Chelsea","Manchester United","Tottenham","Newcastle","Aston Villa","Brighton","West Ham","Sunderland","Bournemouth","Brentford","Burnley","Crystal Palace","Everton","Fulham","Leeds United","Nottingham Forest","Wolves"],
+  "La Liga 🇪🇸": ["Real Madrid","Barcelona","Atletico Madrid","Sevilla","Real Sociedad","Real Betis","Valencia","Villarreal","Athletic Bilbao","Osasuna","Alavés","Celta de Vigo","Elche","Espanyol","Getafe","Girona","Levante","Mallorca","Rayo Vallecano","Real Oviedo"],
+  "Serie A 🇮🇹": ["Inter Milan","AC Milan","Juventus","Napoli","AS Roma","Lazio","Fiorentina","Atalanta","Bologna","Torino","Cagliari","Como","Cremonese","Genoa","Hellas Verona","Lecce","Parma","Pisa","Sassuolo","Udinese"],
+  "Bundesliga 🇩🇪": ["Bayern Munich","Borussia Dortmund","RB Leipzig","Bayer Leverkusen","Eintracht Frankfurt","Wolfsburg","Freiburg","Union Berlin","Hoffenheim","Stuttgart","Augsburg","Borussia Mönchengladbach","Hamburger SV","Heidenheim","Köln","Mainz 05","St. Pauli","Werder Bremen"],
+  "Ligue 1 🇫🇷": ["PSG","Marseille","Lyon","Monaco","Lille","Nice","Rennes","Lens","Strasbourg","Montpellier","Angers","Auxerre","Le Havre","Lorient","Metz","Nantes","Paris FC","Stade Brestois","Toulouse"],
 };
 
 const POSICIONES = ["Arquero","Defensor","Lateral","Mediocampista","Volante","Extremo","Delantero"];
@@ -203,7 +203,17 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .ucl-input{width:100%;padding:13px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;outline:none;font-family:'Outfit';font-size:15px;font-weight:500;color:#f0f4ff;transition:all 0.2s}
 .ucl-input:focus{border-color:rgba(30,80,212,0.6);background:rgba(30,80,212,0.08);box-shadow:0 0 0 3px rgba(30,80,212,0.12)}
 .ucl-input::placeholder{color:rgba(255,255,255,0.25)}
-select.ucl-input{appearance:none;cursor:pointer}
+select.ucl-input{
+  appearance:none;
+  cursor:pointer;
+  background:#0f172a !important;
+  color:#ffffff !important;
+}
+
+select.ucl-input option{
+  background:#0f172a;
+  color:#ffffff;
+}
 .card-tap{transition:transform 0.15s,opacity 0.15s;cursor:pointer}
 .card-tap:active{transform:scale(0.97);opacity:0.85}
 `;
@@ -1001,6 +1011,211 @@ const TEAM_IDS = {
   "Strasbourg": 576, "Montpellier": 518,
 };
 
+
+// Escudos locales guardados en /public/equipos.
+// Si falta alguno, la app usa el fallback remoto de football-data o la estrella.
+const EQUIPO_LOGOS = {
+  "River Plate": "/equipos/river.png",
+  "Boca Juniors": "/equipos/boca.png",
+  "Racing Club": "/equipos/racing.png",
+  "Independiente": "/equipos/independiente.png",
+  "San Lorenzo": "/equipos/sanlorenzo.png",
+  "Huracán": "/equipos/huracan.png",
+  "Vélez Sársfield": "/equipos/velez.png",
+  "Lanús": "/equipos/lanus.png",
+  "Banfield": "/equipos/banfield.png",
+  "Talleres (Córdoba)": "/equipos/talleres.png",
+  "Belgrano": "/equipos/belgrano.png",
+  "Estudiantes (LP)": "/equipos/estudiantes.png",
+  "Gimnasia (LP)": "/equipos/gimnasia.png",
+  "Platense": "/equipos/platense.png",
+  "Tigre": "/equipos/tigre.png",
+  "Godoy Cruz": "/equipos/godoycruz.png",
+  "Unión (SF)": "/equipos/union.png",
+  "Central Córdoba": "/equipos/centralcordoba.png",
+  "Sarmiento": "/equipos/sarmiento.png",
+  "Instituto": "/equipos/instituto.png",
+  "Riestra": "/equipos/riestra.png",
+  "Deportivo Riestra": "/equipos/riestra.png",
+
+  // Europa
+  "Manchester City": "/europa/premier/manchestercity.png",
+  "Arsenal": "/europa/premier/arsenal.png",
+  "Liverpool": "/europa/premier/liverpool.png",
+  "Chelsea": "/europa/premier/chelsea.png",
+  "Manchester United": "/europa/premier/manchesterunited.png",
+  "Tottenham": "/europa/premier/tottenham.png",
+  "Newcastle": "/europa/premier/newcastle.png",
+  "Aston Villa": "/europa/premier/astonvilla.png",
+  "Brighton": "/europa/premier/brighton.png",
+  "West Ham": "/europa/premier/westham.png",
+  "Sunderland": "/europa/premier/sunderland.png",
+  "Bournemouth": "/europa/premier/bournemouth.png",
+  "Brentford": "/europa/premier/brentford.png",
+  "Burnley": "/europa/premier/burnley.png",
+  "Crystal Palace": "/europa/premier/crystalpalace.png",
+  "Everton": "/europa/premier/everton.png",
+  "Fulham": "/europa/premier/fulham.png",
+  "Leeds United": "/europa/premier/leeds.png",
+  "Nottingham Forest": "/europa/premier/nottingham_forest.png",
+  "Wolves": "/europa/premier/wolves.png",
+  "Real Madrid": "/europa/laliga/realmadrid.png",
+  "Barcelona": "/europa/laliga/barcelona.png",
+  "Atletico Madrid": "/europa/laliga/atlmadrid.png",
+  "Sevilla": "/europa/laliga/sevilla.png",
+  "Real Sociedad": "/europa/laliga/realsociedad.png",
+  "Real Betis": "/europa/laliga/betis.png",
+  "Valencia": "/europa/laliga/valencia.png",
+  "Villarreal": "/europa/laliga/villarreal.png",
+  "Athletic Bilbao": "/europa/laliga/athletic.png",
+  "Osasuna": "/europa/laliga/osasuna.png",
+  "Alavés": "/europa/laliga/alaves.png",
+  "Celta de Vigo": "/europa/laliga/celta.png",
+  "Elche": "/europa/laliga/elche.png",
+  "Espanyol": "/europa/laliga/espanyol.png",
+  "Getafe": "/europa/laliga/getafe.png",
+  "Girona": "/europa/laliga/girona.png",
+  "Levante": "/europa/laliga/levante.png",
+  "Mallorca": "/europa/laliga/mallorca.png",
+  "Rayo Vallecano": "/europa/laliga/rayovallecano.png",
+  "Real Oviedo": "/europa/laliga/realoviedo.png",
+  "Inter Milan": "/europa/seriea/inter.png",
+  "AC Milan": "/europa/seriea/milan.png",
+  "Juventus": "/europa/seriea/juventus.png",
+  "Napoli": "/europa/seriea/napoli.png",
+  "AS Roma": "/europa/seriea/roma.png",
+  "Lazio": "/europa/seriea/lazio.png",
+  "Fiorentina": "/europa/seriea/fiorentina.png",
+  "Atalanta": "/europa/seriea/atalanta.png",
+  "Bologna": "/europa/seriea/bologna.png",
+  "Torino": "/europa/seriea/torino.png",
+  "Cagliari": "/europa/seriea/cagliari.png",
+  "Como": "/europa/seriea/como.png",
+  "Cremonese": "/europa/seriea/cremonese.png",
+  "Genoa": "/europa/seriea/genoa.png",
+  "Hellas Verona": "/europa/seriea/hellasverona.png",
+  "Lecce": "/europa/seriea/lecce.png",
+  "Parma": "/europa/seriea/parma.png",
+  "Pisa": "/europa/seriea/pisa.png",
+  "Sassuolo": "/europa/seriea/sassuolo.png",
+  "Udinese": "/europa/seriea/udinese.png",
+  "Bayern Munich": "/europa/bundesliga/bayernmunchen.png",
+  "Borussia Dortmund": "/europa/bundesliga/borussiadortmund.png",
+  "RB Leipzig": "/europa/bundesliga/rbleipzig.png",
+  "Bayer Leverkusen": "/europa/bundesliga/bayerleverkusen.png",
+  "Eintracht Frankfurt": "/europa/bundesliga/eintrachtfrankfurt.png",
+  "Wolfsburg": "/europa/bundesliga/wolfsburg.png",
+  "Freiburg": "/europa/bundesliga/freiburg.png",
+  "Union Berlin": "/europa/bundesliga/unionberlin.png",
+  "Hoffenheim": "/europa/bundesliga/hoffenheim.png",
+  "Stuttgart": "/europa/bundesliga/stuttgart.png",
+  "Augsburg": "/europa/bundesliga/augsburgo.png",
+  "Borussia Mönchengladbach": "/europa/bundesliga/bmonchengladbach.png",
+  "Hamburger SV": "/europa/bundesliga/hamburgo.png",
+  "Heidenheim": "/europa/bundesliga/heidenheim.png",
+  "Köln": "/europa/bundesliga/koln.png",
+  "Mainz 05": "/europa/bundesliga/mainz05.png",
+  "St. Pauli": "/europa/bundesliga/st_pauli.png",
+  "Werder Bremen": "/europa/bundesliga/werderbremen.png",
+  "PSG": "/europa/ligue1/psg.png",
+  "Marseille": "/europa/ligue1/olimpiquemarsella.png",
+  "Lyon": "/europa/ligue1/olympiquelyon.png",
+  "Monaco": "/europa/ligue1/monaco.png",
+  "Lille": "/europa/ligue1/lille.png",
+  "Nice": "/europa/ligue1/niza.png",
+  "Rennes": "/europa/ligue1/rennais.png",
+  "Lens": "/europa/ligue1/racinglens.png",
+  "Strasbourg": "/europa/ligue1/racingetrasburgo.png",
+  "Montpellier": "/europa/ligue1/montpellier.png",
+  "Angers": "/europa/ligue1/angers.png",
+  "Auxerre": "/europa/ligue1/auxerre.png",
+  "Le Havre": "/europa/ligue1/havre.png",
+  "Lorient": "/europa/ligue1/lorient.png",
+  "Metz": "/europa/ligue1/metz.png",
+  "Nantes": "/europa/ligue1/nantes.png",
+  "Paris FC": "/europa/ligue1/paris_fc.png",
+  "Stade Brestois": "/europa/ligue1/stadebretois.png",
+  "Toulouse": "/europa/ligue1/toulouse.png",
+};
+
+const getEquipoLogo = (teamName) => EQUIPO_LOGOS[teamName] || null;
+
+const TEAM_COLORS = {
+  // Argentina
+  "River Plate": { primary:"#d90429", secondary:"#ffffff", text:"#ffffff" },
+  "Boca Juniors": { primary:"#003b7a", secondary:"#f9c80e", text:"#ffffff" },
+  "Racing Club": { primary:"#5ec8ff", secondary:"#ffffff", text:"#ffffff" },
+  "Independiente": { primary:"#d5001c", secondary:"#8b0000", text:"#ffffff" },
+  "San Lorenzo": { primary:"#0033a0", secondary:"#d50032", text:"#ffffff" },
+  "Huracán": { primary:"#ffffff", secondary:"#d71920", text:"#ffffff" },
+  "Vélez Sársfield": { primary:"#ffffff", secondary:"#0050a4", text:"#ffffff" },
+  "Lanús": { primary:"#6d001a", secondary:"#9f1239", text:"#ffffff" },
+  "Banfield": { primary:"#0f8f3c", secondary:"#ffffff", text:"#ffffff" },
+  "Arsenal Sarandí": { primary:"#7a003c", secondary:"#66b3ff", text:"#ffffff" },
+  "Talleres (Córdoba)": { primary:"#005eb8", secondary:"#ffffff", text:"#ffffff" },
+  "Belgrano": { primary:"#00a3e0", secondary:"#111827", text:"#ffffff" },
+  "Estudiantes (LP)": { primary:"#d5001c", secondary:"#ffffff", text:"#ffffff" },
+  "Gimnasia (LP)": { primary:"#001f5b", secondary:"#ffffff", text:"#ffffff" },
+  "Platense": { primary:"#7a3e2b", secondary:"#ffffff", text:"#ffffff" },
+  "Tigre": { primary:"#0033a0", secondary:"#d50032", text:"#ffffff" },
+  "Godoy Cruz": { primary:"#0050a4", secondary:"#ffffff", text:"#ffffff" },
+  "Unión (SF)": { primary:"#d5001c", secondary:"#ffffff", text:"#ffffff" },
+  "Colón (SF)": { primary:"#111111", secondary:"#d5001c", text:"#ffffff" },
+  "Central Córdoba": { primary:"#111827", secondary:"#ffffff", text:"#ffffff" },
+  "Sarmiento": { primary:"#15803d", secondary:"#ffffff", text:"#ffffff" },
+  "Instituto": { primary:"#d5001c", secondary:"#ffffff", text:"#ffffff" },
+  "Riestra": { primary:"#111827", secondary:"#ffffff", text:"#ffffff" },
+  "Deportivo Riestra": { primary:"#111827", secondary:"#ffffff", text:"#ffffff" },
+
+  // Europa
+  "Real Madrid": { primary:"#f8fafc", secondary:"#b7a8ff", text:"#ffffff" },
+  "Barcelona": { primary:"#004d98", secondary:"#a50044", text:"#ffffff" },
+  "Atletico Madrid": { primary:"#d50032", secondary:"#1d4ed8", text:"#ffffff" },
+  "Sevilla": { primary:"#d5001c", secondary:"#ffffff", text:"#ffffff" },
+  "Real Sociedad": { primary:"#005baa", secondary:"#ffffff", text:"#ffffff" },
+  "Real Betis": { primary:"#00843d", secondary:"#ffffff", text:"#ffffff" },
+  "Valencia": { primary:"#ff7a00", secondary:"#111827", text:"#ffffff" },
+  "Villarreal": { primary:"#ffe500", secondary:"#0050a4", text:"#ffffff" },
+  "Athletic Bilbao": { primary:"#d5001c", secondary:"#ffffff", text:"#ffffff" },
+  "Osasuna": { primary:"#d50032", secondary:"#003b7a", text:"#ffffff" },
+  "Manchester City": { primary:"#6cabdd", secondary:"#ffffff", text:"#ffffff" },
+  "Arsenal": { primary:"#ef0107", secondary:"#063672", text:"#ffffff" },
+  "Liverpool": { primary:"#c8102e", secondary:"#00b2a9", text:"#ffffff" },
+  "Chelsea": { primary:"#034694", secondary:"#ffffff", text:"#ffffff" },
+  "Manchester United": { primary:"#da291c", secondary:"#fbe122", text:"#ffffff" },
+  "Tottenham": { primary:"#ffffff", secondary:"#132257", text:"#ffffff" },
+  "Newcastle": { primary:"#111827", secondary:"#ffffff", text:"#ffffff" },
+  "Aston Villa": { primary:"#95bfe5", secondary:"#670e36", text:"#ffffff" },
+  "Brighton": { primary:"#0057b8", secondary:"#ffffff", text:"#ffffff" },
+  "West Ham": { primary:"#7a263a", secondary:"#1bb1e7", text:"#ffffff" },
+  "Inter Milan": { primary:"#0057b8", secondary:"#111827", text:"#ffffff" },
+  "AC Milan": { primary:"#fb090b", secondary:"#111111", text:"#ffffff" },
+  "Juventus": { primary:"#ffffff", secondary:"#111827", text:"#ffffff" },
+  "Napoli": { primary:"#12a8e0", secondary:"#ffffff", text:"#ffffff" },
+  "AS Roma": { primary:"#8e1f2f", secondary:"#f0bc42", text:"#ffffff" },
+  "Lazio": { primary:"#87ceeb", secondary:"#ffffff", text:"#ffffff" },
+  "Fiorentina": { primary:"#5f259f", secondary:"#ffffff", text:"#ffffff" },
+  "Atalanta": { primary:"#0057b8", secondary:"#111827", text:"#ffffff" },
+  "Bayern Munich": { primary:"#dc052d", secondary:"#0066b2", text:"#ffffff" },
+  "Borussia Dortmund": { primary:"#fde100", secondary:"#111111", text:"#ffffff" },
+  "RB Leipzig": { primary:"#ffffff", secondary:"#dd0741", text:"#ffffff" },
+  "Bayer Leverkusen": { primary:"#e32221", secondary:"#111111", text:"#ffffff" },
+  "Eintracht Frankfurt": { primary:"#e1000f", secondary:"#111111", text:"#ffffff" },
+  "Wolfsburg": { primary:"#65b32e", secondary:"#ffffff", text:"#ffffff" },
+  "PSG": { primary:"#004170", secondary:"#da291c", text:"#ffffff" },
+  "Marseille": { primary:"#00a3e0", secondary:"#ffffff", text:"#ffffff" },
+  "Lyon": { primary:"#0033a0", secondary:"#d50032", text:"#ffffff" },
+  "Monaco": { primary:"#e30613", secondary:"#ffffff", text:"#ffffff" },
+  "Lille": { primary:"#d50032", secondary:"#001f5b", text:"#ffffff" },
+  "Nice": { primary:"#d50032", secondary:"#111111", text:"#ffffff" },
+  "Rennes": { primary:"#e30613", secondary:"#111827", text:"#ffffff" },
+  "Lens": { primary:"#f6c600", secondary:"#d5001c", text:"#ffffff" },
+};
+
+const DEFAULT_TEAM_COLOR = { primary:"#2563eb", secondary:"#7cb9ff", text:"#ffffff" };
+const getTeamColors = (teamName) => TEAM_COLORS[teamName] || DEFAULT_TEAM_COLOR;
+
+
 // Mapeo de nombre equipo → escudo URL (logo via API football-data)
 function useEquipoData(teamName) {
   const [data, setData] = useState(null);
@@ -1030,81 +1245,271 @@ function useEquipoData(teamName) {
   return { data, loading };
 }
 
-function EquipoCard({ titulo, equipo, liga, emoji }) {
+function EquipoCard({ titulo, equipo, liga, emoji, onClick }) {
   const teamId = equipo ? TEAM_IDS[equipo] : null;
-  const logoUrl = teamId ? `https://crests.football-data.org/${teamId}.svg` : null;
-  const logoPng = teamId ? `https://crests.football-data.org/${teamId}.png` : null;
+  const localLogo = equipo ? getEquipoLogo(equipo) : null;
+  const logoUrl = localLogo || (teamId ? `https://crests.football-data.org/${teamId}.svg` : null);
+  const logoPng = localLogo || (teamId ? `https://crests.football-data.org/${teamId}.png` : null);
   const [imgSrc, setImgSrc] = useState(logoUrl || logoPng);
   const [imgError, setImgError] = useState(false);
+  const colors = getTeamColors(equipo);
+  const primary = colors.primary;
+  const secondary = colors.secondary;
 
-  useEffect(() => { if (logoUrl) { setImgSrc(logoUrl); setImgError(false); } }, [equipo]);
+  useEffect(() => {
+    setImgSrc(logoUrl || logoPng || null);
+    setImgError(false);
+  }, [equipo, logoUrl, logoPng]);
 
   const handleImgError = () => {
-    if (imgSrc === logoUrl && logoPng) { setImgSrc(logoPng); }
+    if (!localLogo && imgSrc === logoUrl && logoPng) { setImgSrc(logoPng); }
     else { setImgError(true); }
   };
 
   if(!equipo) return (
-    <div style={{background:"rgba(255,255,255,0.03)",border:"1px dashed rgba(255,255,255,0.1)",borderRadius:14,padding:14,flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6,minHeight:110}}>
-      <span style={{fontSize:22}}>{emoji}</span>
-      <div style={{fontSize:11,color:"rgba(255,255,255,0.25)",textAlign:"center"}}>{titulo}<br/>sin asignar</div>
+    <div onClick={onClick} style={{
+      background:"linear-gradient(135deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))",
+      border:"1px dashed rgba(255,255,255,0.12)",
+      borderRadius:18,
+      padding:14,
+      flex:1,
+      display:"flex",
+      flexDirection:"column",
+      alignItems:"center",
+      justifyContent:"center",
+      gap:6,
+      minHeight:128,
+      cursor:onClick?"pointer":"default",
+      boxShadow:"inset 0 1px 0 rgba(255,255,255,0.04)"
+    }}>
+      <span style={{fontSize:24,filter:"drop-shadow(0 3px 8px rgba(0,0,0,0.45))"}}>{emoji}</span>
+      <div style={{fontSize:11,color:"rgba(255,255,255,0.28)",textAlign:"center",fontWeight:700}}>{titulo}<br/>sin asignar</div>
     </div>
   );
+
   return (
-    <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:12,flex:1,minHeight:110,overflow:"hidden",position:"relative"}}>
+    <div onClick={onClick} style={{
+      background:`
+        radial-gradient(circle at 86% 38%, ${primary}40 0%, transparent 38%),
+        linear-gradient(135deg, ${primary}30 0%, rgba(8,13,27,0.96) 52%, ${secondary}18 100%)
+      `,
+      border:`1px solid ${primary}70`,
+      borderRadius:18,
+      padding:14,
+      flex:1,
+      minHeight:128,
+      overflow:"hidden",
+      position:"relative",
+      cursor:onClick?"pointer":"default",
+      boxShadow:`0 12px 30px ${primary}1f, inset 0 1px 0 rgba(255,255,255,0.08)`,
+      transition:"transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease"
+    }}>
+      <div style={{position:"absolute",inset:0,background:`linear-gradient(120deg,rgba(255,255,255,0.08),transparent 38%,${secondary}12)`,pointerEvents:"none"}} />
+      <div style={{position:"absolute",left:0,top:0,bottom:0,width:4,background:`linear-gradient(180deg,${primary},${secondary})`,opacity:0.95}} />
       {/* Escudo de fondo fantasma */}
       {imgSrc && !imgError && (
-        <img src={imgSrc} alt="" style={{position:"absolute",right:-10,top:"50%",transform:"translateY(-50%)",width:80,height:80,objectFit:"contain",opacity:0.07,pointerEvents:"none"}} onError={()=>{}}/>
+        <img src={imgSrc} alt="" style={{position:"absolute",right:-12,top:"50%",transform:"translateY(-50%)",width:92,height:92,objectFit:"contain",opacity:0.12,pointerEvents:"none",filter:`drop-shadow(0 0 18px ${primary}55)`}} onError={()=>{}}/>
       )}
-      <div style={{fontSize:9,fontWeight:700,letterSpacing:2,color:"rgba(255,255,255,0.3)",marginBottom:6}}>{titulo.toUpperCase()}</div>
+      <div style={{position:"relative",zIndex:1,fontSize:9,fontWeight:900,letterSpacing:2.2,color:"rgba(255,255,255,0.48)",marginBottom:10}}>{titulo.toUpperCase()}</div>
       {/* Escudo + nombre */}
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+      <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
         {imgSrc && !imgError ? (
-          <img src={imgSrc} alt={equipo}
-            style={{width:34,height:34,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 2px 6px rgba(0,0,0,0.5))"}}
-            onError={handleImgError}/>
+          <div style={{width:38,height:38,borderRadius:13,background:"rgba(255,255,255,0.10)",border:"1px solid rgba(255,255,255,0.14)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 8px 22px ${primary}35`,flexShrink:0}}>
+            <img src={imgSrc} alt={equipo}
+              style={{width:31,height:31,objectFit:"contain",filter:"drop-shadow(0 2px 5px rgba(0,0,0,0.55))"}}
+              onError={handleImgError}/>
+          </div>
         ) : (
-          <div style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>{emoji}</div>
+          <div style={{width:38,height:38,borderRadius:13,background:`linear-gradient(135deg,${primary}55,rgba(255,255,255,0.08))`,border:`1px solid ${primary}80`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19,boxShadow:`0 8px 22px ${primary}35`,flexShrink:0}}>{emoji}</div>
         )}
-        <div>
-          <div style={{fontWeight:800,fontSize:13,color:"#fff",lineHeight:1.2}}>{equipo}</div>
-          {liga&&<div style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>{liga}</div>}
+        <div style={{minWidth:0}}>
+          <div style={{fontWeight:900,fontSize:14,color:colors.text||"#fff",lineHeight:1.12,textShadow:"0 2px 8px rgba(0,0,0,0.45)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{equipo}</div>
+          {liga&&<div style={{fontSize:10,color:"rgba(255,255,255,0.58)",fontWeight:700,marginTop:2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{liga}</div>}
         </div>
       </div>
-      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-        <span style={{fontSize:9,padding:"2px 7px",borderRadius:99,background:"rgba(30,80,212,0.15)",color:"#7cb9ff",border:"1px solid rgba(30,80,212,0.2)"}}>Próx: TBD</span>
-        <span style={{fontSize:9,padding:"2px 7px",borderRadius:99,background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.08)"}}>Últ: TBD</span>
+      <div style={{position:"relative",zIndex:1,display:"flex",gap:5,flexWrap:"wrap"}}>
+        <span style={{fontSize:9,padding:"3px 8px",borderRadius:99,background:`${primary}38`,color:"#dbeafe",border:`1px solid ${primary}70`,fontWeight:800}}>Próx: TBD</span>
+        <span style={{fontSize:9,padding:"3px 8px",borderRadius:99,background:"rgba(255,255,255,0.09)",color:"rgba(255,255,255,0.62)",border:"1px solid rgba(255,255,255,0.12)",fontWeight:800}}>Últ: TBD</span>
       </div>
     </div>
   );
 }
 
-function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick, users }) {
+function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick, users, onUpdateEquipoArg, onUpdateEquipoEu }) {
+  const pendienteKey = partido?.id && user?.id ? `fulbito_pendiente_${partido.id}_${user.id}` : null;
   const yaConfirmo = partido?.confirmados?.includes(user.id);
   const yaRechazo = partido?.rechazados?.includes(user.id);
-  const [respondida, setRespondida] = useState(yaConfirmo || yaRechazo);
-  const [confirmado, setConfirmado] = useState(yaConfirmo);
+  const yaPendiente = partido?.pendientes?.includes(user.id) || (pendienteKey ? S.get(pendienteKey, false) : false);
+  const [estadoRespuesta, setEstadoRespuesta] = useState(yaConfirmo ? "confirmado" : yaRechazo ? "rechazado" : yaPendiente ? "pendiente" : null);
+  const respondida = Boolean(estadoRespuesta);
+  const confirmado = estadoRespuesta === "confirmado";
+  const pendienteConfirmacion = estadoRespuesta === "pendiente";
+  const rechazado = estadoRespuesta === "rechazado";
+
+  const getRespuestaBtnStyle = (tipo) => {
+    const config = {
+      confirmado: {
+        color: "#4ade80",
+        colorStrong: "#22c55e",
+        bg: "rgba(34,197,94,0.08)",
+        bgStrong: "linear-gradient(135deg,rgba(34,197,94,0.95),rgba(21,128,61,0.72))",
+        border: "rgba(34,197,94,0.28)",
+        borderStrong: "rgba(134,239,172,0.95)",
+        shadow: "rgba(34,197,94,0.42)",
+      },
+      pendiente: {
+        color: "#fbbf24",
+        colorStrong: "#facc15",
+        bg: "rgba(251,191,36,0.08)",
+        bgStrong: "linear-gradient(135deg,rgba(251,191,36,0.96),rgba(202,138,4,0.72))",
+        border: "rgba(251,191,36,0.28)",
+        borderStrong: "rgba(253,224,71,0.95)",
+        shadow: "rgba(251,191,36,0.42)",
+      },
+      rechazado: {
+        color: "#f87171",
+        colorStrong: "#ef4444",
+        bg: "rgba(239,68,68,0.08)",
+        bgStrong: "linear-gradient(135deg,rgba(239,68,68,0.96),rgba(153,27,27,0.75))",
+        border: "rgba(239,68,68,0.26)",
+        borderStrong: "rgba(252,165,165,0.95)",
+        shadow: "rgba(239,68,68,0.42)",
+      },
+    }[tipo];
+
+    const active = estadoRespuesta === tipo;
+    const muted = respondida && !active;
+
+    return {
+      padding: "10px",
+      borderRadius: 10,
+      border: active ? `1px solid ${config.borderStrong}` : `1px solid ${config.border}`,
+      cursor: "pointer",
+      fontFamily: "'Outfit'",
+      fontWeight: 900,
+      fontSize: 12,
+      background: active ? config.bgStrong : config.bg,
+      color: active ? "#ffffff" : config.color,
+      transition: "all 0.18s ease",
+      boxShadow: active ? `0 0 0 2px ${config.shadow}, 0 10px 28px ${config.shadow}` : "inset 0 1px 0 rgba(255,255,255,0.05)",
+      transform: active ? "translateY(-1px) scale(1.02)" : "scale(1)",
+      opacity: muted ? 0.42 : 1,
+      filter: muted ? "saturate(0.75)" : "none",
+    };
+  };
   const [confirmados, setConfirmados] = useState(partido?.confirmados || []);
+  const [pendientesConfirmacion, setPendientesConfirmacion] = useState(partido?.pendientes || []);
   const [showCrearPartido, setShowCrearPartido] = useState(false);
-  const miStats = stats.find(s=>s.id===user.id);
+  const [showEquiposArg, setShowEquiposArg] = useState(false);
+  const [showEquiposEu, setShowEquiposEu] = useState(false);
+  const [ligaEuActiva, setLigaEuActiva] = useState(user?.ligaEu || user?.liga_eu || Object.keys(LIGAS_EU)[0]);
+  const [guardandoEquipoArg, setGuardandoEquipoArg] = useState(false);
+  const [guardandoEquipoEu, setGuardandoEquipoEu] = useState(false);
+  const miStats = stats.find(s=>s.id===user.id) || user;
+  const equipoArgHome = miStats?.equipoArg || miStats?.equipo_arg || user?.equipoArg || user?.equipo_arg || "";
+  const equipoEuHome = miStats?.equipoEu || miStats?.equipo_eu || user?.equipoEu || user?.equipo_eu || "";
+  const ligaEuHome = miStats?.ligaEu || miStats?.liga_eu || user?.ligaEu || user?.liga_eu || "";
   const media = Math.round(Object.values(miStats?.stats||{}).reduce((a,b)=>a+b,0)/6)||65;
 
-  const handleConfirmar = async (si) => {
-    if (!partido) return;
-    let nuevosConf = [...confirmados];
-    let nuevosRech = [...(partido.rechazados || [])];
-    if (si) {
-      if (!nuevosConf.includes(user.id)) nuevosConf.push(user.id);
-      nuevosRech = nuevosRech.filter(id => id !== user.id);
-    } else {
-      nuevosRech = [...new Set([...nuevosRech, user.id])];
-      nuevosConf = nuevosConf.filter(id => id !== user.id);
+  useEffect(() => {
+    const nextConfirmo = partido?.confirmados?.includes(user.id);
+    const nextRechazo = partido?.rechazados?.includes(user.id);
+    const nextPendiente = partido?.pendientes?.includes(user.id) || (pendienteKey ? S.get(pendienteKey, false) : false);
+    setConfirmados(partido?.confirmados || []);
+    setPendientesConfirmacion(partido?.pendientes || []);
+    setEstadoRespuesta(nextConfirmo ? "confirmado" : nextRechazo ? "rechazado" : nextPendiente ? "pendiente" : null);
+  }, [partido?.id, partido?.confirmados, partido?.rechazados, partido?.pendientes, user.id]);
+
+
+  const seleccionarEquipoArg = async (equipo) => {
+    if (!user?.id || guardandoEquipoArg) return;
+    setGuardandoEquipoArg(true);
+    const { error } = await supabase
+      .from("jugadores")
+      .update({ equipo_arg: equipo })
+      .eq("id", user.id);
+
+    setGuardandoEquipoArg(false);
+
+    if (error) {
+      alert("No se pudo guardar el equipo. Probá de nuevo.");
+      return;
     }
-    await supabase.from("partidos").update({ confirmados: nuevosConf, rechazados: nuevosRech }).eq("id", partido.id);
+
+    if (onUpdateEquipoArg) onUpdateEquipoArg(equipo);
+    setShowEquiposArg(false);
+  };
+
+  const seleccionarEquipoEu = async (liga, equipo) => {
+    if (!user?.id || guardandoEquipoEu) return;
+    setGuardandoEquipoEu(true);
+    const { error } = await supabase
+      .from("jugadores")
+      .update({ liga_eu: liga, equipo_eu: equipo })
+      .eq("id", user.id);
+
+    setGuardandoEquipoEu(false);
+
+    if (error) {
+      alert("No se pudo guardar el equipo europeo. Probá de nuevo.");
+      return;
+    }
+
+    if (onUpdateEquipoEu) onUpdateEquipoEu(liga, equipo);
+    setShowEquiposEu(false);
+  };
+
+  const handleConfirmar = async (estado) => {
+    if (!partido) return;
+
+    let nuevosConf = [...(partido.confirmados || confirmados || [])].filter(id => id !== user.id);
+    let nuevosRech = [...(partido.rechazados || [])].filter(id => id !== user.id);
+    let nuevosPend = [...(partido.pendientes || pendientesConfirmacion || [])].filter(id => id !== user.id);
+
+    if (estado === "confirmado") nuevosConf.push(user.id);
+    if (estado === "rechazado") nuevosRech.push(user.id);
+    if (estado === "pendiente") nuevosPend.push(user.id);
+
+    nuevosConf = [...new Set(nuevosConf)];
+    nuevosRech = [...new Set(nuevosRech)];
+    nuevosPend = [...new Set(nuevosPend)];
+
     setConfirmados(nuevosConf);
-    setConfirmado(si);
-    setRespondida(true);
-    if (setPartido) setPartido(prev => ({ ...prev, confirmados: nuevosConf, rechazados: nuevosRech }));
+    setPendientesConfirmacion(nuevosPend);
+    setEstadoRespuesta(estado);
+
+    if (pendienteKey) S.set(pendienteKey, estado === "pendiente");
+
+    const payloadCompleto = { confirmados: nuevosConf, rechazados: nuevosRech, pendientes: nuevosPend };
+    const payloadCompatible = { confirmados: nuevosConf, rechazados: nuevosRech };
+
+    const { error } = await supabase.from("partidos").update(payloadCompleto).eq("id", partido.id);
+
+    // Si la columna "pendientes" todavía no existe en Supabase, no rompemos la app:
+    // guardamos el estado localmente y actualizamos confirmados/rechazados igual.
+    if (error) {
+      await supabase.from("partidos").update(payloadCompatible).eq("id", partido.id);
+    }
+
+    if (setPartido) {
+      setPartido(prev => ({ ...prev, confirmados: nuevosConf, rechazados: nuevosRech, pendientes: nuevosPend }));
+    }
+  };
+
+  const resetRespuestaPartido = async () => {
+    if (!partido) return;
+    const nuevosConf = [...(partido.confirmados || [])].filter(id => id !== user.id);
+    const nuevosRech = [...(partido.rechazados || [])].filter(id => id !== user.id);
+    const nuevosPend = [...(partido.pendientes || pendientesConfirmacion || [])].filter(id => id !== user.id);
+
+    setConfirmados(nuevosConf);
+    setPendientesConfirmacion(nuevosPend);
+    setEstadoRespuesta(null);
+    if (pendienteKey) S.set(pendienteKey, false);
+
+    const { error } = await supabase.from("partidos").update({ confirmados: nuevosConf, rechazados: nuevosRech, pendientes: nuevosPend }).eq("id", partido.id);
+    if (error) await supabase.from("partidos").update({ confirmados: nuevosConf, rechazados: nuevosRech }).eq("id", partido.id);
+    if (setPartido) setPartido(prev => ({ ...prev, confirmados: nuevosConf, rechazados: nuevosRech, pendientes: nuevosPend }));
   };
 
   return(
@@ -1121,17 +1526,212 @@ function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick, 
         />
       )}
 
-      {/* Botón Crear Partido */}
-      <button onClick={() => setShowCrearPartido(true)} style={{
-        width: "100%", padding: "13px 16px", borderRadius: 14, marginBottom: 12,
-        border: "1px solid rgba(34,197,94,0.35)", cursor: "pointer",
-        fontFamily: "'Outfit'", fontWeight: 800, fontSize: 15,
-        background: "linear-gradient(135deg,rgba(5,150,105,0.2),rgba(16,185,129,0.1))",
-        color: "#4ade80", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-        boxShadow: "0 4px 20px rgba(34,197,94,0.12)", transition: "all 0.2s",
-      }}>
-        <span style={{ fontSize: 20 }}>⚽</span> CREAR PARTIDO
-      </button>
+      {showEquiposArg && (
+        <div
+          className="fade-in"
+          style={{
+            position:"fixed",
+            inset:0,
+            zIndex:900,
+            background:"rgba(0,0,0,0.88)",
+            backdropFilter:"blur(16px)",
+            display:"flex",
+            alignItems:"flex-end",
+            justifyContent:"center"
+          }}
+          onMouseDown={(e)=>{ if(e.target===e.currentTarget) setShowEquiposArg(false); }}
+        >
+          <div style={{
+            width:"100%",
+            maxWidth:520,
+            maxHeight:"78dvh",
+            overflowY:"auto",
+            background:"#080d1b",
+            border:"1px solid rgba(255,255,255,0.1)",
+            borderRadius:"24px 24px 0 0",
+            padding:18,
+            boxShadow:"0 -12px 40px rgba(0,0,0,0.55)"
+          }}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,gap:12}}>
+              <div>
+                <div style={{fontWeight:900,fontSize:18}}>Elegí tu equipo argentino</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Tocá un club y se guarda el escudo en Mis equipos.</div>
+              </div>
+              <button onClick={()=>setShowEquiposArg(false)} style={{
+                width:34,
+                height:34,
+                borderRadius:"50%",
+                border:"1px solid rgba(255,255,255,0.12)",
+                background:"rgba(255,255,255,0.06)",
+                color:"#fff",
+                cursor:"pointer",
+                fontSize:18,
+                flexShrink:0
+              }}>
+                ×
+              </button>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {EQUIPOS_ARG.map(eq => {
+                const teamId = TEAM_IDS[eq];
+                const logo = getEquipoLogo(eq) || (teamId ? `https://crests.football-data.org/${teamId}.png` : null);
+                const activo = equipoArgHome === eq;
+
+                return (
+                  <button key={eq} disabled={guardandoEquipoArg} onClick={()=>seleccionarEquipoArg(eq)} style={{
+                    padding:12,
+                    borderRadius:14,
+                    border: activo ? "1px solid #4ade80" : "1px solid rgba(255,255,255,0.08)",
+                    background: activo ? "rgba(34,197,94,0.13)" : "rgba(255,255,255,0.04)",
+                    color:"#fff",
+                    cursor:guardandoEquipoArg?"wait":"pointer",
+                    fontFamily:"'Outfit'",
+                    display:"flex",
+                    alignItems:"center",
+                    gap:10,
+                    textAlign:"left",
+                    opacity:guardandoEquipoArg?0.7:1
+                  }}>
+                    {logo ? (
+                      <img src={logo} alt={eq} style={{width:28,height:28,objectFit:"contain",flexShrink:0}} />
+                    ) : (
+                      <span style={{fontSize:22}}>⭐</span>
+                    )}
+                    <span style={{fontWeight:800,fontSize:12,lineHeight:1.15}}>{eq}</span>
+                    {activo && <span style={{marginLeft:"auto",fontSize:13}}>✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEquiposEu && (
+        <div
+          className="fade-in"
+          style={{
+            position:"fixed",
+            inset:0,
+            zIndex:900,
+            background:"rgba(0,0,0,0.88)",
+            backdropFilter:"blur(16px)",
+            display:"flex",
+            alignItems:"flex-end",
+            justifyContent:"center"
+          }}
+          onMouseDown={(e)=>{ if(e.target===e.currentTarget) setShowEquiposEu(false); }}
+        >
+          <div style={{
+            width:"100%",
+            maxWidth:520,
+            maxHeight:"78dvh",
+            overflowY:"auto",
+            background:"#080d1b",
+            border:"1px solid rgba(255,255,255,0.1)",
+            borderRadius:"24px 24px 0 0",
+            padding:18,
+            boxShadow:"0 -12px 40px rgba(0,0,0,0.55)"
+          }}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,gap:12}}>
+              <div>
+                <div style={{fontWeight:900,fontSize:18}}>Elegí tu equipo europeo</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Primero elegí la liga y después el club.</div>
+              </div>
+              <button onClick={()=>setShowEquiposEu(false)} style={{
+                width:34,
+                height:34,
+                borderRadius:"50%",
+                border:"1px solid rgba(255,255,255,0.12)",
+                background:"rgba(255,255,255,0.06)",
+                color:"#fff",
+                cursor:"pointer",
+                fontSize:18,
+                flexShrink:0
+              }}>
+                ×
+              </button>
+            </div>
+
+            <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:10,marginBottom:8}}>
+              {Object.keys(LIGAS_EU).map(liga => {
+                const activa = ligaEuActiva === liga;
+                return (
+                  <button key={liga} onClick={()=>setLigaEuActiva(liga)} style={{
+                    flex:"0 0 auto",
+                    padding:"8px 12px",
+                    borderRadius:999,
+                    border: activa ? "1px solid #60a5fa" : "1px solid rgba(255,255,255,0.08)",
+                    background: activa ? "rgba(37,99,235,0.22)" : "rgba(255,255,255,0.04)",
+                    color: activa ? "#bfdbfe" : "rgba(255,255,255,0.6)",
+                    fontFamily:"'Outfit'",
+                    fontWeight:800,
+                    fontSize:12,
+                    cursor:"pointer",
+                    whiteSpace:"nowrap"
+                  }}>{liga}</button>
+                );
+              })}
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {(LIGAS_EU[ligaEuActiva] || []).map(eq => {
+                const teamId = TEAM_IDS[eq];
+                const logo = getEquipoLogo(eq) || (teamId ? `https://crests.football-data.org/${teamId}.png` : null);
+                const activo = equipoEuHome === eq && ligaEuHome === ligaEuActiva;
+
+                return (
+                  <button key={eq} disabled={guardandoEquipoEu} onClick={()=>seleccionarEquipoEu(ligaEuActiva, eq)} style={{
+                    padding:12,
+                    borderRadius:14,
+                    border: activo ? "1px solid #60a5fa" : "1px solid rgba(255,255,255,0.08)",
+                    background: activo ? "rgba(37,99,235,0.16)" : "rgba(255,255,255,0.04)",
+                    color:"#fff",
+                    cursor:guardandoEquipoEu?"wait":"pointer",
+                    fontFamily:"'Outfit'",
+                    display:"flex",
+                    alignItems:"center",
+                    gap:10,
+                    textAlign:"left",
+                    opacity:guardandoEquipoEu?0.7:1
+                  }}>
+                    {logo ? (
+                      <img src={logo} alt={eq} style={{width:28,height:28,objectFit:"contain",flexShrink:0}} />
+                    ) : (
+                      <span style={{fontSize:22}}>🏆</span>
+                    )}
+                    <span style={{fontWeight:800,fontSize:12,lineHeight:1.15}}>{eq}</span>
+                    {activo && <span style={{marginLeft:"auto",fontSize:13}}>✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mis stats arriba */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10}}>
+        {[["Pts mayo",miStats?.puntosMes||0,"#2563eb"],["PJ",miStats?.pj||0,"#c9a84c"],["Media",media,"#7cb9ff"]].map(([k,v,c])=>(
+          <Card key={k} style={{padding:12,margin:0,textAlign:"center"}}>
+            <div style={{fontFamily:"'Bebas Neue'",fontSize:30,color:c,lineHeight:1}}>{v}</div>
+            <div style={{fontSize:10,fontWeight:600,color:"rgba(255,255,255,0.35)",marginTop:3,letterSpacing:1}}>{k.toUpperCase()}</div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Votación pendiente */}
+      <Card style={{background:"rgba(234,179,8,0.05)",border:"1px solid rgba(234,179,8,0.18)",padding:14,marginBottom:10}} onClick={onVotar}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontSize:24}}>🏆</span>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#fbbf24",marginBottom:1}}>Votación abierta</div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Repartí tus 10 monedas · <span style={{color:"#fbbf24"}}>Cierra el jueves</span></div>
+          </div>
+          <button style={{padding:"7px 14px",borderRadius:8,border:"none",cursor:"pointer",background:"#eab308",color:"#000",fontFamily:"'Outfit'",fontWeight:700,fontSize:12}}>Votar</button>
+        </div>
+      </Card>
 
       {/* Banner partido */}
       <div style={{background:"linear-gradient(135deg,#04060f,#08102a)",border:"1px solid rgba(30,80,212,0.25)",borderRadius:16,padding:16,marginBottom:10,position:"relative",overflow:"hidden"}}>
@@ -1148,69 +1748,69 @@ function PageInicio({ user, partido, setPartido, stats, onVotar, onPlayerClick, 
           )}
           {partido.precio_cabeza && <span style={{fontSize:12,fontWeight:500,color:"#4ade80"}}>💰 ${partido.precio_cabeza}/cabeza</span>}
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:14,flexWrap:"wrap"}}>
           {confirmados.slice(0,6).map((id,i)=>{ const j=stats.find(s=>s.id===id); return j?<div key={id} style={{marginLeft:i>0?-6:0,zIndex:10-i,cursor:"pointer"}} onClick={()=>onPlayerClick&&onPlayerClick(j)}><Av j={j} size={26} border/></div>:null; })}
           <span style={{marginLeft:8,fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.4)"}}>{confirmados.length} confirmados</span>
+          {pendientesConfirmacion.length > 0 && (
+            <span style={{fontSize:11,fontWeight:700,color:"#fbbf24",background:"rgba(251,191,36,0.12)",border:"1px solid rgba(251,191,36,0.22)",borderRadius:999,padding:"3px 8px"}}>
+              ⏰ {pendientesConfirmacion.length} más tarde
+            </span>
+          )}
         </div>
-        {!respondida ? (
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            <button onClick={()=>handleConfirmar(true)} style={{padding:"10px",borderRadius:10,border:"1px solid rgba(30,80,212,0.3)",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:700,fontSize:13,background:"rgba(30,80,212,0.15)",color:"#2563eb",transition:"all 0.2s"}}>
-              Confirmar
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+            <button onClick={()=>handleConfirmar("confirmado")} style={getRespuestaBtnStyle("confirmado")}>
+              {confirmado ? "✓ Confirmado" : "Confirmar"}
             </button>
-            <button onClick={()=>handleConfirmar(false)} style={{padding:"10px",borderRadius:10,border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer",fontFamily:"'Outfit'",fontWeight:700,fontSize:13,background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.35)",transition:"all 0.2s"}}>
-              No puedo
+            <button onClick={()=>handleConfirmar("pendiente")} style={getRespuestaBtnStyle("pendiente")}>
+              {pendienteConfirmacion ? "⏰ Más tarde" : "Más tarde"}
+            </button>
+            <button onClick={()=>handleConfirmar("rechazado")} style={getRespuestaBtnStyle("rechazado")}>
+              {rechazado ? "✕ No puedo" : "No puedo"}
             </button>
           </div>
-        ) : (
-          <div style={{padding:"10px 14px",borderRadius:10,background:confirmado?"rgba(30,80,212,0.12)":"rgba(239,68,68,0.08)",border:confirmado?"1px solid rgba(30,80,212,0.25)":"1px solid rgba(239,68,68,0.15)",fontSize:13,fontWeight:700,color:confirmado?"#7cb9ff":"#f87171",textAlign:"center"}}>
-            {confirmado ? "✓ ¡Confirmado! Nos vemos el viernes 🙌" : "❌ No pudiste confirmar para este partido"}
-          </div>
-        )}
-      </div>
 
-      {/* Votación pendiente */}
-      <Card style={{background:"rgba(234,179,8,0.05)",border:"1px solid rgba(234,179,8,0.18)",padding:14,marginBottom:10}} onClick={onVotar}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <span style={{fontSize:24}}>🏆</span>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#fbbf24",marginBottom:1}}>Votación abierta</div>
-            <div style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>Repartí tus 10 monedas · <span style={{color:"#fbbf24"}}>Cierra el jueves</span></div>
-          </div>
-          <button style={{padding:"7px 14px",borderRadius:8,border:"none",cursor:"pointer",background:"#eab308",color:"#000",fontFamily:"'Outfit'",fontWeight:700,fontSize:12}}>Votar</button>
+          {respondida && (
+            <div style={{
+              padding:"9px 12px",
+              borderRadius:10,
+              background: confirmado ? "rgba(34,197,94,0.10)" : pendienteConfirmacion ? "rgba(251,191,36,0.10)" : "rgba(239,68,68,0.09)",
+              border: confirmado ? "1px solid rgba(34,197,94,0.22)" : pendienteConfirmacion ? "1px solid rgba(251,191,36,0.24)" : "1px solid rgba(239,68,68,0.20)",
+              fontSize:12,
+              fontWeight:800,
+              color: confirmado ? "#4ade80" : pendienteConfirmacion ? "#fbbf24" : "#f87171",
+              textAlign:"center",
+              boxShadow: confirmado ? "0 8px 22px rgba(34,197,94,0.08)" : pendienteConfirmacion ? "0 8px 22px rgba(251,191,36,0.08)" : "0 8px 22px rgba(239,68,68,0.07)"
+            }}>
+              {confirmado ? "✓ ¡Confirmado! Nos vemos el viernes 🙌" : pendienteConfirmacion ? "⏰ Pendiente · Te recordaremos el jueves 12:00" : "❌ Marcaste que no podés para este partido"}
+            </div>
+          )}
         </div>
-      </Card>
-
-      {/* Mis stats */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10}}>
-        {[["Pts mayo",miStats?.puntosMes||0,"#2563eb"],["PJ",miStats?.pj||0,"#c9a84c"],["Media",media,"#7cb9ff"]].map(([k,v,c])=>(
-          <Card key={k} style={{padding:12,margin:0,textAlign:"center"}}>
-            <div style={{fontFamily:"'Bebas Neue'",fontSize:30,color:c,lineHeight:1}}>{v}</div>
-            <div style={{fontSize:10,fontWeight:600,color:"rgba(255,255,255,0.35)",marginTop:3,letterSpacing:1}}>{k.toUpperCase()}</div>
-          </Card>
-        ))}
       </div>
 
       {/* Equipos favoritos */}
       <div style={{marginBottom:10}}>
         <Lbl style={{marginBottom:8}}>Mis equipos</Lbl>
         <div style={{display:"flex",gap:8}}>
-          <EquipoCard titulo="Argentina 🇦🇷" equipo={miStats?.equipoArg} emoji="⭐"/>
-          <EquipoCard titulo="Europa 🌍" equipo={miStats?.equipoEu} liga={miStats?.ligaEu} emoji="🏆"/>
+          <EquipoCard titulo="Argentina 🇦🇷" equipo={equipoArgHome} emoji="⭐" onClick={() => setShowEquiposArg(true)}/>
+          <EquipoCard titulo="Europa 🌍" equipo={equipoEuHome} liga={ligaEuHome} emoji="🏆" onClick={() => setShowEquiposEu(true)}/>
         </div>
       </div>
 
-      {/* Invitación */}
-      <Card style={{padding:14}}>
-        <Lbl style={{marginBottom:10}}>Invitaciones</Lbl>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:38,height:38,borderRadius:10,background:"rgba(30,80,212,0.12)",border:"1px solid rgba(30,80,212,0.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👥</div>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:600,fontSize:14}}>Partido extra — Sábado 17/05</div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>De: Rulo · Cancha Los Nogales</div>
-          </div>
-          <button style={{padding:"6px 14px",borderRadius:8,border:"none",cursor:"pointer",background:"#2563eb",color:"#fff",fontFamily:"'Outfit'",fontWeight:700,fontSize:12}}>Ver</button>
-        </div>
-      </Card>
+      {/* Crear partido solo admins */}
+      {user?.isAdmin && (
+        <button onClick={() => setShowCrearPartido(true)} style={{
+          width: "100%", padding: "13px 16px", borderRadius: 14, marginTop: 6, marginBottom: 12,
+          border: "1px solid rgba(34,197,94,0.35)", cursor: "pointer",
+          fontFamily: "'Outfit'", fontWeight: 800, fontSize: 15,
+          background: "linear-gradient(135deg,rgba(5,150,105,0.2),rgba(16,185,129,0.1))",
+          color: "#4ade80", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+          boxShadow: "0 4px 20px rgba(34,197,94,0.12)", transition: "all 0.2s",
+        }}>
+          <span style={{ fontSize: 20 }}>⚽</span> CREAR PARTIDO
+        </button>
+      )}
+
     </div>
   );
 }
@@ -2057,6 +2657,11 @@ useEffect(() => {
         }
       }));
       setUsers(mapped);
+      setLoggedUser(prev => {
+        if (!prev?.id) return prev;
+        const actualizado = mapped.find(u => u.id === prev.id);
+        return actualizado ? { ...prev, ...actualizado } : prev;
+      });
     }
   });
 }, []);
@@ -2110,7 +2715,7 @@ useEffect(() => {
     });
   }, [partido?.id]);
 
-  const handleLogin = (u) => { setLoggedUser(u); setTab(0); };
+  const handleLogin = (u) => { setLoggedUser(u); S.set("fulbito-session", { id: u.id }); setTab(0); };
   const handleLogout = () => { setLoggedUser(null); localStorage.removeItem("fulbito-session"); };
   const handleRegister = (nu) => setUsers(prev=>[...prev, nu]);
 
@@ -2120,6 +2725,21 @@ useEffect(() => {
     setUsers(prev=>prev.map(u=>u.id===updated.id?{...u,...updated}:u));
     setSelectedPlayer(prev=>prev?{...prev,...updated}:prev);
     if(loggedUser?.id===updated.id) setLoggedUser(prev=>({...prev,...updated}));
+  };
+
+
+  const handleUpdateEquipoArg = (equipo) => {
+    setUsers(prev => prev.map(u =>
+      u.id === loggedUser?.id ? { ...u, equipoArg: equipo, equipo_arg: equipo } : u
+    ));
+    setLoggedUser(prev => prev ? { ...prev, equipoArg: equipo, equipo_arg: equipo } : prev);
+  };
+
+  const handleUpdateEquipoEu = (liga, equipo) => {
+    setUsers(prev => prev.map(u =>
+      u.id === loggedUser?.id ? { ...u, ligaEu: liga, liga_eu: liga, equipoEu: equipo, equipo_eu: equipo } : u
+    ));
+    setLoggedUser(prev => prev ? { ...prev, ligaEu: liga, liga_eu: liga, equipoEu: equipo, equipo_eu: equipo } : prev);
   };
 
   if(!loggedUser) return (
@@ -2172,7 +2792,7 @@ useEffect(() => {
         )}
         <Header user={loggedUser} onAdmin={()=>setShowAdmin(true)} onLogout={handleLogout} onProfile={()=>setSelectedPlayer(loggedUser)}/>
         <div style={{padding:"14px 14px 82px",position:"relative",zIndex:1}}>
-          {tab===0&&<PageInicio user={loggedUser} partido={partido} setPartido={setPartido} stats={users} onVotar={()=>{setTab(1);}} onPlayerClick={handlePlayerClick} users={users}/>}
+          {tab===0&&<PageInicio user={loggedUser} partido={partido} setPartido={setPartido} stats={users} onVotar={()=>{setTab(1);}} onPlayerClick={handlePlayerClick} users={users} onUpdateEquipoArg={handleUpdateEquipoArg} onUpdateEquipoEu={handleUpdateEquipoEu}/>}
           {tab===1&&<PageTemporada user={loggedUser} stats={users} partido={partido} votos={votos} onVotar={()=>setShowVotacion(partido)} onPlayerClick={handlePlayerClick}/>}
           {tab===2&&<PageCincoIdeal stats={users} user={loggedUser} onPlayerClick={handlePlayerClick} isAdmin={loggedUser?.isAdmin}/>}
           {tab===3&&<PageFeed user={loggedUser} stats={users} feed={feed} onFeedUpdate={setFeed}/>}
