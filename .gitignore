@@ -1,5 +1,20 @@
-<<<<<<< HEAD
-"node_modules/" 
-=======
-node_modules 
->>>>>>> 50dc21bbe9170b275ebf1cf171f848274611208b
+# Dependencias
+node_modules
+
+# Build
+dist
+dist-ssr
+
+# Variables de entorno (NO subir)
+.env
+.env.local
+.env.*.local
+
+# Logs y sistema
+*.log
+.DS_Store
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
