@@ -21,3 +21,6 @@ dist-ssr
 
 # Scripts locales de administración (no publicar)
 crear-usuarios.js
+
+crear-usuarios.js
+crear-admins.js
