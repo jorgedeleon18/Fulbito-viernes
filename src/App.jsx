@@ -12,7 +12,7 @@ const S = {
 /* ─────────────────────────────────────────
    DATA INICIAL
 ───────────────────────────────────────── */
-const ADMINS = ["nico","juank"];
+const ADMINS = ["jorgi77o","juank"];
 
 const USERS_DEFAULT = [
   { id:1, nombre:"Nico", apellido:"De Leon", apodo:"El Capitán", email:"nico@fulbito.com", pass:"nico123", isAdmin:true, color:"#7C3AED", posicion:"Mediocampista", pierna:"Derecha", ciudad:"Berazategui", nivel:"Avanzado", fechaNac:"1990-03-15",
@@ -2629,6 +2629,141 @@ function ModalCardFullscreen({ jugador, isAdmin, onClose, onEdit }) {
 }
 
 /* ─────────────────────────────────────────
+   GESTIÓN DE USUARIOS (Panel Admin)
+───────────────────────────────────────── */
+const ROLES = [
+  { key: "admin",    label: "Admin",    icon: "⚙️", color: "#c9a84c", desc: "Puede hacer todo" },
+  { key: "jugador",  label: "Jugador",  icon: "⚽", color: "#2563eb", desc: "Miembro del grupo" },
+  { key: "invitado", label: "Invitado", icon: "👋", color: "#64748b", desc: "Participa ocasional" },
+];
+const rolDe = (u) => u?.rol || (u?.isAdmin ? "admin" : "jugador");
+
+function ModalGestionUsuarios({ users, loggedUser, onClose, onRolChange, onEditar }) {
+  const [q, setQ] = useState("");
+  const [guardando, setGuardando] = useState(null);
+
+  const conteo = {
+    admin:    users.filter(u => rolDe(u) === "admin").length,
+    jugador:  users.filter(u => rolDe(u) === "jugador").length,
+    invitado: users.filter(u => rolDe(u) === "invitado").length,
+  };
+  const ordenRol = { admin: 0, jugador: 1, invitado: 2 };
+  const lista = users
+    .filter(u => `${u.nombre} ${u.apellido||""} ${u.apodo||""}`.toLowerCase().includes(q.toLowerCase().trim()))
+    .sort((a, b) => {
+      const r = ordenRol[rolDe(a)] - ordenRol[rolDe(b)];
+      return r !== 0 ? r : (a.nombre||"").localeCompare(b.nombre||"");
+    });
+
+  const cambiar = async (u, nuevoRol) => {
+    if (rolDe(u) === nuevoRol) return;
+    setGuardando(u.id);
+    await onRolChange(u, nuevoRol);
+    setGuardando(null);
+  };
+
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:600,background:"#060b18",display:"flex",justifyContent:"center",overflowY:"auto"}}>
+      <div style={{width:"100%",maxWidth:520,minHeight:"100dvh",display:"flex",flexDirection:"column"}}>
+
+        {/* Header */}
+        <div style={{height:60,position:"sticky",top:0,zIndex:10,background:"rgba(6,11,24,0.95)",borderBottom:"1px solid rgba(255,255,255,0.07)",backdropFilter:"blur(24px)",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 16px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <span style={{fontSize:20}}>⚙️</span>
+            <div>
+              <div style={{fontFamily:"'Outfit'",fontWeight:800,fontSize:15,color:"#fff",lineHeight:1.1}}>Gestión de usuarios</div>
+              <div style={{fontFamily:"'Outfit'",fontWeight:500,fontSize:10,letterSpacing:0.5,color:"#c9a84c"}}>Panel de administración</div>
+            </div>
+          </div>
+          <button onClick={onClose} style={{width:34,height:34,borderRadius:99,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+        </div>
+
+        <div style={{padding:"16px 14px 40px"}}>
+
+          {/* Resumen por rol */}
+          <div style={{display:"flex",gap:8,marginBottom:14}}>
+            {ROLES.map(r => (
+              <div key={r.key} style={{flex:1,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:"12px 8px",textAlign:"center"}}>
+                <div style={{fontSize:18,marginBottom:3}}>{r.icon}</div>
+                <div style={{fontFamily:"'Bebas Neue'",fontSize:26,color:r.color,lineHeight:1}}>{conteo[r.key]}</div>
+                <div style={{fontSize:10,fontWeight:600,color:"rgba(255,255,255,0.45)",marginTop:2}}>{r.label}{conteo[r.key]!==1?"s":""}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Buscador */}
+          <input
+            value={q}
+            onChange={e=>setQ(e.target.value)}
+            placeholder="🔍 Buscar jugador..."
+            style={{width:"100%",boxSizing:"border-box",padding:"12px 14px",borderRadius:12,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontFamily:"'Outfit'",fontSize:14,marginBottom:14,outline:"none"}}
+          />
+
+          {/* Lista de usuarios */}
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {lista.length === 0 && (
+              <div style={{textAlign:"center",padding:"40px 0",color:"rgba(255,255,255,0.35)",fontFamily:"'Outfit'",fontSize:13}}>Ningún usuario coincide con la búsqueda.</div>
+            )}
+            {lista.map(u => {
+              const soyYo = u.id === loggedUser.id;
+              const rActual = rolDe(u);
+              return (
+                <div key={u.id} style={{background:"rgba(255,255,255,0.035)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16,padding:"13px 13px 14px"}}>
+                  {/* Datos del usuario */}
+                  <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:12}}>
+                    <Av j={u} size={44} border/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",gap:7}}>
+                        <span style={{fontFamily:"'Outfit'",fontWeight:700,fontSize:15,color:"#fff"}}>{u.nombre} {u.apellido||""}</span>
+                        {soyYo && <span style={{fontSize:9,fontWeight:700,color:"#c9a84c",background:"rgba(201,168,76,0.14)",padding:"2px 7px",borderRadius:99}}>VOS</span>}
+                      </div>
+                      <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                        {u.apodo ? `“${u.apodo}”` : ""}{u.apodo && u.email ? " · " : ""}{u.email||""}
+                      </div>
+                    </div>
+                    <button onClick={()=>onEditar(u)} style={{fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.6)",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:99,padding:"6px 11px",cursor:"pointer",whiteSpace:"nowrap"}}>Editar</button>
+                  </div>
+
+                  {/* Selector de rol */}
+                  <div style={{display:"flex",gap:6}}>
+                    {ROLES.map(r => {
+                      const activo = rActual === r.key;
+                      const bloqueado = soyYo && r.key !== "admin"; // no podés sacarte a vos mismo el admin
+                      return (
+                        <button
+                          key={r.key}
+                          disabled={bloqueado || guardando === u.id}
+                          onClick={()=>cambiar(u, r.key)}
+                          title={bloqueado ? "No podés quitarte el admin a vos mismo" : r.desc}
+                          style={{
+                            flex:1, padding:"9px 4px", borderRadius:10, cursor: bloqueado?"not-allowed":"pointer",
+                            fontFamily:"'Outfit'", fontWeight:700, fontSize:12,
+                            border: activo ? `1.5px solid ${r.color}` : "1.5px solid rgba(255,255,255,0.08)",
+                            background: activo ? `${r.color}22` : "rgba(255,255,255,0.03)",
+                            color: activo ? r.color : (bloqueado ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.55)"),
+                            opacity: guardando===u.id ? 0.5 : 1, transition:"all 0.15s",
+                          }}
+                        >
+                          {r.icon} {r.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{marginTop:20,padding:"13px 15px",background:"rgba(37,99,235,0.07)",border:"1px solid rgba(37,99,235,0.2)",borderRadius:14,fontSize:12,lineHeight:1.5,color:"rgba(255,255,255,0.55)"}}>
+            💡 Los <b style={{color:"#c9a84c"}}>admins</b> pueden gestionar todo. Los <b style={{color:"#64748b"}}>invitados</b> son quienes juegan de vez en cuando. Próximamente vas a poder crear invitados nuevos y sumar sub-cargos.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
    APP ROOT
 ───────────────────────────────────────── */
 export default function App() {
@@ -2640,6 +2775,7 @@ useEffect(() => {
       const mapped = data.map(j => ({
         ...j,
         isAdmin: j.is_admin,
+        rol: j.rol || (j.is_admin ? "admin" : "jugador"),
         puntosMes: j.puntos_mes,
         puntosAnio: j.puntos_anio,
         fechaNac: j.fecha_nac,
@@ -2719,6 +2855,16 @@ useEffect(() => {
   const handleLogout = () => { setLoggedUser(null); localStorage.removeItem("fulbito-session"); };
   const handleRegister = (nu) => setUsers(prev=>[...prev, nu]);
 
+  // Cambiar el rol de un usuario (admin / jugador / invitado) desde el Panel Admin
+  const handleRolChange = async (u, nuevoRol) => {
+    const is_admin = nuevoRol === "admin";
+    const { error } = await supabase.from("jugadores")
+      .update({ rol: nuevoRol, is_admin }).eq("id", u.id);
+    if (error) { alert("No se pudo cambiar el rol: " + error.message); return; }
+    setUsers(prev => prev.map(x => x.id === u.id ? { ...x, rol: nuevoRol, is_admin, isAdmin: is_admin } : x));
+    if (loggedUser?.id === u.id) setLoggedUser(prev => ({ ...prev, rol: nuevoRol, is_admin, isAdmin: is_admin }));
+  };
+
   // Click en jugador: si es mi propio perfil o admin quiere editar, abre PlayerModal; si no, abre ModalCardFullscreen
   const handlePlayerClick = (j) => setCardFullscreen(j);
   const handlePlayerSave = (updated) => {
@@ -2788,6 +2934,15 @@ useEffect(() => {
             onVotado={()=>{
               supabase.from("votos").select("*").eq("partido_id", showVotacion.id).then(({data})=>{if(data)setVotos(data);});
             }}
+          />
+        )}
+        {showAdmin&&(
+          <ModalGestionUsuarios
+            users={users}
+            loggedUser={loggedUser}
+            onClose={()=>setShowAdmin(false)}
+            onRolChange={handleRolChange}
+            onEditar={(u)=>{ setShowAdmin(false); setSelectedPlayer(u); }}
           />
         )}
         <Header user={loggedUser} onAdmin={()=>setShowAdmin(true)} onLogout={handleLogout} onProfile={()=>setSelectedPlayer(loggedUser)}/>
